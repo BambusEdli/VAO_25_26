@@ -19,7 +19,9 @@ public class ExperimentController : MonoBehaviour
 
     private GameObject currentSourceMarker;
 
-
+    [Header("Audio / ASIO")]
+    [Tooltip("Persistente Asio-Quelle in der Szene, wird an die Target-Position verschoben.")]
+    public Transform asioSourceTransform;
 
     /// <summary>
     /// Platziert/aktualisiert den Quellmarker basierend auf Azimut/Elevation.
@@ -40,6 +42,12 @@ public class ExperimentController : MonoBehaviour
 
         Vector3 dir = SphericalCoords.DirectionFromAzEl(azimuthDeg, elevationDeg);
         currentSourceMarker.transform.position = dir * sphereRadius;
+
+        // Asio-Quelle an die gleiche Position wie den visuellen Marker setzen
+        if (asioSourceTransform != null)
+        {
+            asioSourceTransform.position = currentSourceMarker.transform.position;
+        }
     }
 
     /// <summary>
@@ -90,10 +98,36 @@ public class ExperimentController : MonoBehaviour
         Debug.Log($"Neues Target gesetzt: Az = {azimuth:F1}°, El = {elevation:F1}°");
     }
 
+    /// <summary>
+    /// Spielt den Sound der aktuellen Quelle ab:
+    /// - Unity-AudioSource auf dem Marker (falls vorhanden)
+    /// - Asio-Quelle in der Szene (falls vorhanden)
+    /// </summary>
+    public void PlayCurrentSourceAudio()
+    {
+        if (currentSourceMarker == null && asioSourceTransform == null)
+        {
+            Debug.LogWarning("ExperimentController: Keine Quelle zum Abspielen vorhanden.");
+            return;
+        }
+
+        // Unity-AudioSource auf dem Marker (Test/KH)
+        if (currentSourceMarker != null)
+        {
+            // Normalerweise liegt hier eine AudioSource mit einem Test-Clip
+            currentSourceMarker.SendMessage("Play", SendMessageOptions.DontRequireReceiver);
+        }
+
+        // Persistente Asio-Quelle
+        if (asioSourceTransform != null)
+        {
+            asioSourceTransform.gameObject.SendMessage("Play", SendMessageOptions.DontRequireReceiver);
+        }
+    }
+
     private void Start()
     {
         // Erstes Target beim Szenenstart setzen
         PlaceRandomTarget();
     }
-
 }

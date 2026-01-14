@@ -204,6 +204,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "fr.liris.asioaudiounity": {
+      "version": "https://github.com/liris-xr/AsioAudioUnity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "eab1dc9fa18e90afc061db4d906f5726934a3fc7"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,

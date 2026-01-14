@@ -83,7 +83,16 @@ public class TrialStateController : MonoBehaviour
             return;
         }
 
-        // Hier: Reaper triggern (Stimulusstart). Für Prototyp simulieren wir nur die Dauer.
+        if (experiment == null)
+        {
+            Debug.LogError("TrialStateController: experiment-Referenz fehlt.");
+            return;
+        }
+
+        // Audio abspielen (Unity-AudioSource + persistente Asio-Quelle)
+        experiment.PlayCurrentSourceAudio();
+
+        // Hier: Stimulusdauer simulieren. Später kannst du das an Clip-Länge koppeln.
         float stimulusDuration = simulatedStimulusDuration;
 
         stimulusOffsetTime = Time.time + stimulusDuration;
@@ -119,13 +128,14 @@ public class TrialStateController : MonoBehaviour
         Debug.Log($"Antwort geloggt. ResponseTime = {responseTime:F3} s, Error = {errorAngle:F1}°");
         Debug.Log($"headDir = {headDir}, sourceDir = {sourceDir}");
 
+        // Neues zufälliges Target für den nächsten Trial
         experiment.PlaceRandomTarget();
+
         // TODO: Hier später in Datei/CSV loggen
 
         // Trial zurücksetzen oder nächsten Trial vorbereiten
         state = TrialState.Idle;
     }
-
 
     private void UpdateStimulusState()
     {
