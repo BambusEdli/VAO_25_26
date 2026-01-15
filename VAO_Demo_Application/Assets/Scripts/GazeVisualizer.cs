@@ -34,3 +34,4 @@ public class GazeVisualizer : MonoBehaviour
         line.SetPosition(1, end);
     }
 }
+

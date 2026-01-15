@@ -119,6 +119,82 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &251617963
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1368788964973204, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_Name
+      value: ViveTrackersManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475740990665956, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3771642314943763740, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: origin
+      value: 
+      objectReference: {fileID: 1108434253}
+    - target: {fileID: 3771642314943763740, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+      propertyPath: configFilePath
+      value: ./Assets/ViveTrackers/Scripts/ViveTrackers.csv
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+--- !u!114 &251617964 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3771642314943763740, guid: 3a080f0a76d28cc4f97c42fb2361a865, type: 3}
+  m_PrefabInstance: {fileID: 251617963}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e3b3a6deca90e6499bbeccacc21d774, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ViveTrackers.ViveTrackersManager
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,6 +683,66 @@ MonoBehaviour:
   head: {fileID: 1623653223}
   experiment: {fileID: 1032955940}
   simulatedStimulusDuration: 2
+--- !u!114 &1108434253 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 522004282349036815, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+  m_PrefabInstance: {fileID: 1982964838}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 170d91b9817b6d2479fef8d619622c3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugTransform
+--- !u!1 &1197194625
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1197194627}
+  - component: {fileID: 1197194626}
+  m_Layer: 0
+  m_Name: ViveTrackerTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1197194626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197194625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d401f70c274a8ca4d9344eedfab3f74f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ViveTrackers.ViveTrackersTest
+  useFake: 0
+  viveTrackersManager: {fileID: 251617964}
+  viveTrackersManagerFake: {fileID: 1803209404}
+  headRig: {fileID: 1623653223}
+  readInput: {fileID: 2060029810}
+--- !u!4 &1197194627
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197194625}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1207471597 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4075302050563679129, guid: 8993c07995a8b0a40a34552e33acc40a, type: 3}
@@ -698,6 +834,7 @@ GameObject:
   - component: {fileID: 1623653225}
   - component: {fileID: 1623653224}
   - component: {fileID: 1623653226}
+  - component: {fileID: 1623653227}
   m_Layer: 0
   m_Name: Head
   m_TagString: Untagged
@@ -728,7 +865,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1623653222}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4b8f8479fbaeff41a0a8282419d59d9, type: 3}
   m_Name: 
@@ -861,6 +998,191 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GazeVisualizer
   head: {fileID: 1623653223}
   gazeLength: 10
+--- !u!114 &1623653227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623653222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee6e068be3a9eb64db979e2b0b79dd8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrackerCentering
+  trackingOrigin: {fileID: 1623653223}
+  trackerTag: Tracker
+  searchTimeoutSeconds: 5
+--- !u!1001 &1803209403
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1602317594437352, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_Name
+      value: ViveTrackersManagerFake
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4241841040099206, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+--- !u!114 &1803209404 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4333727338593264168, guid: 88d63f2ea7e061e488e9b0caf489da6b, type: 3}
+  m_PrefabInstance: {fileID: 1803209403}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 146778aaaab2fff40853e7645c9e2236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ViveTrackers.ViveTrackersManagerFake
+--- !u!1001 &1982964838
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1298221991204188, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_Name
+      value: Origin
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4840994698031120, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9c398729ac84aff48998f4f1ce36f74b, type: 3}
+--- !u!1 &2060029809
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2060029811}
+  - component: {fileID: 2060029810}
+  m_Layer: 0
+  m_Name: Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2060029810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060029809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5a0f9dba6e3bbc439ec21672f5c1000, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReadInput
+  tracker: {fileID: 0}
+--- !u!4 &2060029811
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060029809}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &4479073863559323213
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -991,3 +1313,8 @@ SceneRoots:
   - {fileID: 4479073863559323213}
   - {fileID: 6611463122857480459}
   - {fileID: 1615900137}
+  - {fileID: 1982964838}
+  - {fileID: 251617963}
+  - {fileID: 1803209403}
+  - {fileID: 1197194627}
+  - {fileID: 2060029811}
