@@ -1,8 +1,11 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Verantwortlich für das Platzieren der Zielquelle auf der Sphäre
-/// und das Berechnen des Winkelfehlers zwischen Kopf-Forward und Quelle.
+/// Verantwortlich für das Platzieren der Zielquelle auf der Sphäre,
+/// das Berechnen des Winkelfehlers zwischen Kopf-Forward und Quelle
+/// und das Verwalten des Trial-Designs (Repräsentation, Signaltyp, Quadrant).
 /// </summary>
 public class ExperimentController : MonoBehaviour
 {
@@ -22,6 +25,47 @@ public class ExperimentController : MonoBehaviour
     [Header("Audio / ASIO")]
     [Tooltip("Persistente Asio-Quelle in der Szene, wird an die Target-Position verschoben.")]
     public Transform asioSourceTransform;
+
+    [Header("Elevation-Bereich")]
+    [Tooltip("Minimale Elevation in Grad (z. B. -40)")]
+    public float minElevationDeg = -40f;
+
+    [Tooltip("Maximale Elevation in Grad (z. B. +40)")]
+    public float maxElevationDeg = 40f;
+
+    // ---------- Faktorielles Design ----------
+
+    public enum RepresentationType
+    {
+        Binaural,
+        HOA3rdOrder,
+        HOA4thOrder
+    }
+
+    public enum SignalType
+    {
+        Tone,
+        Voice,
+        Music
+    }
+
+    [Serializable]
+    public class TrialDefinition
+    {
+        public int trialIndex;                // 0-basiert intern, Logging kann +1 nehmen
+        public RepresentationType representation;
+        public SignalType signalType;
+        public int quadrantIndex;            // 0..3 (0: 0–90, 1: 90–180, 2: 180–270, 3: 270–360)
+        public float targetAzimuthDeg;
+        public float targetElevationDeg;
+    }
+
+    private List<TrialDefinition> trials;
+    private int currentTrialIndex = -1;
+    private TrialDefinition currentTrial;
+    private bool experimentFinished = false;
+
+    // ---------- Platzierung & Geometrie ----------
 
     /// <summary>
     /// Platziert/aktualisiert den Quellmarker basierend auf Azimut/Elevation.
@@ -69,33 +113,16 @@ public class ExperimentController : MonoBehaviour
     }
 
     /// <summary>
-    /// Gibt die aktuelle Richtungsvektor-Quelle zurück (normalisiert), falls benötigt.
+    /// Gibt den aktuellen Richtungsvektor zur Quelle zurück (normalisiert), falls benötigt.
     /// </summary>
     public Vector3 GetSourceDirection()
     {
-        if (currentSourceMarker == null)
+        if (currentSourceMarker == null || head == null)
         {
             return Vector3.forward;
         }
 
         return (currentSourceMarker.transform.position - head.position).normalized;
-    }
-
-    /// <summary>
-    /// Wählt einen neuen zufälligen Zielwinkel (Azimut/Elevation)
-    /// und platziert den Marker auf der Sphäre.
-    /// Hier erstmal simple Zufallsverteilung; Balancing kommt später.
-    /// </summary>
-    public void PlaceRandomTarget()
-    {
-        // Azimut: komplett zufällig 0–360°
-        float azimuth = Random.Range(0f, 360f);
-
-        // Elevation: hier Beispiel 0° oder +30°
-        float elevation = Random.value < 0.5f ? 0f : 30f;
-
-        PlaceTarget(azimuth, elevation);
-        Debug.Log($"Neues Target gesetzt: Az = {azimuth:F1}°, El = {elevation:F1}°");
     }
 
     /// <summary>
@@ -111,10 +138,9 @@ public class ExperimentController : MonoBehaviour
             return;
         }
 
-        // Unity-AudioSource auf dem Marker (Test/KH)
+        // Unity-AudioSource auf dem Marker (z.B. Test-Clip/Kopfhörer)
         if (currentSourceMarker != null)
         {
-            // Normalerweise liegt hier eine AudioSource mit einem Test-Clip
             currentSourceMarker.SendMessage("Play", SendMessageOptions.DontRequireReceiver);
         }
 
@@ -125,9 +151,170 @@ public class ExperimentController : MonoBehaviour
         }
     }
 
+    // ---------- Trial-Design & -Verwaltung ----------
+
+    private void Awake()
+    {
+        GenerateBalancedTrials();
+    }
+
     private void Start()
     {
-        // Erstes Target beim Szenenstart setzen
-        PlaceRandomTarget();
+        // Erstes Trial vorbereiten
+        AdvanceToNextTrial();
+    }
+
+    /// <summary>
+    /// Gibt an, ob das Experiment (alle Trials) bereits abgeschlossen ist.
+    /// </summary>
+    public bool IsExperimentFinished
+    {
+        get { return experimentFinished; }
+    }
+
+    /// <summary>
+    /// Erzeugt eine Trial-Liste mit:
+    /// - 3 Repräsentationen x 3 Signaltypen = 9 Kombinationen
+    /// - Jede Kombination gleich oft in 4 Quadranten = 36 Trials
+    /// - Azimut pro Quadrant zufällig innerhalb des Quadranten
+    /// - Elevation zunächst 0° oder 30° zufällig (noch nicht gebalanced)
+    /// </summary>
+    private void GenerateBalancedTrials()
+    {
+        trials = new List<TrialDefinition>();
+
+        var reps = (RepresentationType[])Enum.GetValues(typeof(RepresentationType));
+        var sigs = (SignalType[])Enum.GetValues(typeof(SignalType));
+
+        int idx = 0;
+        foreach (var rep in reps)
+        {
+            foreach (var sig in sigs)
+            {
+                for (int quadrant = 0; quadrant < 4; quadrant++)
+                {
+                    float minAz = quadrant * 90f;
+                    float maxAz = (quadrant + 1) * 90f;
+
+                    float az = UnityEngine.Random.Range(minAz, maxAz);
+
+                    // Elevation aus dem im Inspector gesetzten Bereich
+                    float el;
+                    if (maxElevationDeg > minElevationDeg)
+                    {
+                        el = UnityEngine.Random.Range(minElevationDeg, maxElevationDeg);
+                    }
+                    else
+                    {
+                        // Fallback: falls jemand min/max vertauscht, nimm einfach minElevationDeg
+                        el = minElevationDeg;
+                    }
+
+
+                    var trial = new TrialDefinition
+                    {
+                        trialIndex = idx,
+                        representation = rep,
+                        signalType = sig,
+                        quadrantIndex = quadrant,
+                        targetAzimuthDeg = az,
+                        targetElevationDeg = el
+                    };
+
+                    trials.Add(trial);
+                    idx++;
+                }
+            }
+        }
+
+        // Shuffle der Trials, damit Reihenfolge randomisiert ist
+        for (int i = 0; i < trials.Count; i++)
+        {
+            int j = UnityEngine.Random.Range(i, trials.Count);
+            var tmp = trials[i];
+            trials[i] = trials[j];
+            trials[j] = tmp;
+        }
+
+        currentTrialIndex = -1;
+        currentTrial = null;
+        experimentFinished = false;
+
+        Debug.Log($"ExperimentController: {trials.Count} Trials generiert (9 Kombinationen x 4 Quadranten).");
+    }
+
+    /// <summary>
+    /// Springt auf das nächste Trial, platziert die Quelle entsprechend
+    /// und gibt zurück, ob ein weiteres Trial existiert.
+    /// </summary>
+    public bool AdvanceToNextTrial()
+    {
+        if (trials == null || trials.Count == 0)
+        {
+            Debug.LogWarning("ExperimentController: Keine Trials definiert.");
+            experimentFinished = true;
+            currentTrial = null;
+            return false;
+        }
+
+        currentTrialIndex++;
+
+        if (currentTrialIndex >= trials.Count)
+        {
+            Debug.Log("ExperimentController: Alle Trials wurden durchgeführt. Experiment ist beendet.");
+            experimentFinished = true;
+            currentTrial = null;
+            return false;
+        }
+
+        currentTrial = trials[currentTrialIndex];
+        experimentFinished = false;
+
+        PlaceTarget(currentTrial.targetAzimuthDeg, currentTrial.targetElevationDeg);
+
+        Debug.Log(
+            $"Neuer Trial #{currentTrialIndex + 1}/{trials.Count}: " +
+            $"Rep={currentTrial.representation}, Signal={currentTrial.signalType}, " +
+            $"Quadrant={currentTrial.quadrantIndex + 1}, " +
+            $"Az={currentTrial.targetAzimuthDeg:F1}°, El={currentTrial.targetElevationDeg:F1}°");
+
+        return true;
+    }
+
+    // ---------- Getter für Logging ----------
+
+    public int GetCurrentTrialNumber()
+    {
+        return currentTrialIndex + 1;
+    }
+
+    public int GetTotalTrialCount()
+    {
+        return (trials != null) ? trials.Count : 0;
+    }
+
+    public RepresentationType GetCurrentRepresentation()
+    {
+        return currentTrial != null ? currentTrial.representation : RepresentationType.Binaural;
+    }
+
+    public SignalType GetCurrentSignalType()
+    {
+        return currentTrial != null ? currentTrial.signalType : SignalType.Tone;
+    }
+
+    public float GetCurrentTargetAzimuth()
+    {
+        return currentTrial != null ? currentTrial.targetAzimuthDeg : 0f;
+    }
+
+    public float GetCurrentTargetElevation()
+    {
+        return currentTrial != null ? currentTrial.targetElevationDeg : 0f;
+    }
+
+    public int GetCurrentQuadrantIndex()
+    {
+        return currentTrial != null ? currentTrial.quadrantIndex : -1;
     }
 }
