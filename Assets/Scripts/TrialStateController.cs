@@ -207,16 +207,21 @@ public class TrialStateController : MonoBehaviour
             return;
         }
 
-        // Audio abspielen (Unity-AudioSource + persistente Asio-Quelle)
-        experiment.PlayCurrentSourceAudio();
-
         float stimulusDuration = simulatedStimulusDuration;
 
+        // Hier jetzt wirklich den Stimulus starten:
+        //  - Routing in Reaper nach aktuellem Trial
+        //  - JumpToStart + Play + nach Dauer Stop
+        //  - optional zusätzlich Unity-Audio (in StartStimulusForCurrentTrial)
+        experiment.StartStimulusForCurrentTrial(stimulusDuration);
+
+        // Lokalen Timer für die Antwortphase setzen
         stimulusOffsetTime = Time.time + stimulusDuration;
         state = TrialState.StimulusPlaying;
 
-        Debug.Log("Stimulus gestartet, simulierte Dauer: " + stimulusDuration + " s");
+        Debug.Log("Stimulus gestartet, Dauer: " + stimulusDuration + " s");
     }
+
 
     private void OnKey3()
     {

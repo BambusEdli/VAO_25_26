@@ -1,11 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Verantwortlich für das Platzieren der Zielquelle auf der Sphäre,
-/// das Berechnen des Winkelfehlers zwischen Kopf-Forward und Quelle
-/// und das Verwalten des Trial-Designs (Repräsentation, Signaltyp, Quadrant).
+/// Verantwortlich für das Platzieren der Zielquelle auf der Sphäre
+/// und das Berechnen des Winkelfehlers zwischen Kopf-Forward und Quelle.
 /// </summary>
 public class ExperimentController : MonoBehaviour
 {
@@ -32,6 +32,115 @@ public class ExperimentController : MonoBehaviour
 
     [Tooltip("Maximale Elevation in Grad (z. B. +40)")]
     public float maxElevationDeg = 40f;
+
+    [Header("Reaper / OSC")]
+    [Tooltip("Optional: OSC-Sender nach Reaper für das Abspielen der Stimuli")]
+    public ReaperOscSender reaperOscSender;
+
+
+
+    /// <summary>
+    /// Konfiguriert das Routing in REAPER für das aktuelle Trial:
+    /// - genau ein Signaltrack aktiv (1=Voice, 2=Tone/Noise, 3=Music)
+    /// - genau ein Repräsentations-Track aktiv (4=HOA3, 5=HOA4, 6=Binaural)
+    /// </summary>
+    private void ConfigureReaperRoutingForCurrentTrial()
+    {
+        if (reaperOscSender == null || currentTrial == null)
+        {
+            return;
+        }
+
+        // 1) Experiment-Signaltyp auf Reaper-Signaltyp abbilden
+        ReaperOscSender.SignalType reaperSignalType;
+        switch (currentTrial.signalType)
+        {
+            case SignalType.Voice:
+                reaperSignalType = ReaperOscSender.SignalType.Voice;
+                break;
+            case SignalType.Tone:   // dein Noise/Tone-Track -> Reaper "Noise"
+                reaperSignalType = ReaperOscSender.SignalType.Noise;
+                break;
+            case SignalType.Music:
+                reaperSignalType = ReaperOscSender.SignalType.Music;
+                break;
+            default:
+                reaperSignalType = ReaperOscSender.SignalType.Noise;
+                break;
+        }
+
+        // 2) Experiment-Repräsentation auf Reaper-Repräsentation abbilden
+        ReaperOscSender.RepresentationType reaperRepType;
+        switch (currentTrial.representation)
+        {
+            case RepresentationType.HOA3rdOrder:
+                reaperRepType = ReaperOscSender.RepresentationType.HOA3;
+                break;
+            case RepresentationType.HOA4thOrder:
+                reaperRepType = ReaperOscSender.RepresentationType.HOA4;
+                break;
+            case RepresentationType.Binaural:
+            default:
+                reaperRepType = ReaperOscSender.RepresentationType.Binaural;
+                break;
+        }
+
+        // 3) Routing in Reaper setzen (Mute/Unmute aller Tracks)
+        reaperOscSender.ConfigureRouting(reaperSignalType, reaperRepType);
+
+        Debug.Log(
+            $"Reaper-Routing: Signal={currentTrial.signalType} (Reaper {reaperSignalType}), " +
+            $"Rep={currentTrial.representation} (Reaper {reaperRepType})"
+        );
+    }
+
+
+    /// <summary>
+    /// Startet für das aktuelle Trial den Stimulus in Reaper
+    /// (Routing setzen, JumpToStart, Play, nach Dauer Stop).
+    /// Optional: zusätzlich Unity-Audio abspielen.
+    /// </summary>
+    public void StartStimulusForCurrentTrial(float durationSeconds)
+    {
+        // Optional: lokale Audioquelle parallel spielen lassen (zum Debuggen)
+        PlayCurrentSourceAudio();
+
+        if (reaperOscSender == null)
+        {
+            Debug.LogWarning("ExperimentController: Kein ReaperOscSender gesetzt – es wird nur Unity-Audio gespielt.");
+            return;
+        }
+
+        if (currentTrial == null)
+        {
+            Debug.LogWarning("ExperimentController: Kein aktuelles Trial – kein Stimulus in Reaper gestartet.");
+            return;
+        }
+
+        StartCoroutine(ReaperStimulusRoutine(durationSeconds));
+    }
+
+    private IEnumerator ReaperStimulusRoutine(float durationSeconds)
+    {
+        // 1) Routing je nach aktuellem Trial setzen
+        ConfigureReaperRoutingForCurrentTrial();
+
+        // 2) TODO: hier später 'Move Source for OSC' ergänzen, wenn Adresse klar ist
+
+        // 3) An den Anfang der Timeline springen
+        reaperOscSender.JumpToStart();
+
+        // 4) Play
+        reaperOscSender.TogglePlay();
+
+        // 5) Warten (Stimulusdauer)
+        yield return new WaitForSeconds(durationSeconds);
+
+        // 6) Stop
+        reaperOscSender.ToggleStop();
+    }
+
+
 
     // ---------- Faktorielles Design ----------
 
