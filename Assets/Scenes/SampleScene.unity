@@ -1224,6 +1224,7 @@ GameObject:
   - component: {fileID: 1623653224}
   - component: {fileID: 1623653226}
   - component: {fileID: 1623653227}
+  - component: {fileID: 1623653228}
   m_Layer: 0
   m_Name: Head
   m_TagString: Untagged
@@ -1402,6 +1403,19 @@ MonoBehaviour:
   originTag: TrackerOrigin
   zOffset: -2.56
   searchTimeoutSeconds: 5
+--- !u!114 &1623653228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623653222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b2118994187aff48b63c892dfdc3782, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  rotationOffsetEuler: {x: 90, y: 0, z: 0}
 --- !u!1001 &1803209403
 PrefabInstance:
   m_ObjectHideFlags: 0
