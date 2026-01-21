@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5856260006306870224}
   - component: {fileID: 2462925575332653169}
   - component: {fileID: 341943938632418951}
+  - component: {fileID: 7012293237717679657}
   m_Layer: 0
   m_Name: SoundSourceMarker
   m_TagString: Untagged
@@ -111,3 +112,17 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7012293237717679657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 297575385805896569}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1c322c29be97c4880cce7921e5502b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AsioAudioUnity::SourcePositionOsc
+  _osc: {fileID: 0}
+  _sourceIndex: 0

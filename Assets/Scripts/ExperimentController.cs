@@ -183,14 +183,15 @@ public class ExperimentController : MonoBehaviour
     {
         if (sourceMarkerPrefab == null)
         {
-            Debug.LogError("ExperimentController: sourceMarkerPrefab ist nicht gesetzt.");
+            Debug.LogError("ExperimentController: sourceMarkerPrefab ist nicht gesetzt " +
+                           "(sollte jetzt auf das SoundSource-Objekt in der Szene zeigen).");
             return;
         }
 
+        // Wir benutzen das bereits in der Szene vorhandene Objekt als aktuellen Marker
         if (currentSourceMarker == null)
         {
-            currentSourceMarker = Instantiate(sourceMarkerPrefab, Vector3.zero, Quaternion.identity);
-            currentSourceMarker.name = "CurrentSourceMarker";
+            currentSourceMarker = sourceMarkerPrefab;
         }
 
         Vector3 dir = SphericalCoords.DirectionFromAzEl(azimuthDeg, elevationDeg);
@@ -202,6 +203,7 @@ public class ExperimentController : MonoBehaviour
             asioSourceTransform.position = currentSourceMarker.transform.position;
         }
     }
+
 
     /// <summary>
     /// Berechnet den Winkel zwischen Kopf-Vorwärtsrichtung und Quelle in Grad.
