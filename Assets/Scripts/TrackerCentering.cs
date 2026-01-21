@@ -6,6 +6,9 @@ public class TrackerCentering : MonoBehaviour
     [SerializeField] private string originTag = "TrackerOrigin";
     [SerializeField] private float zOffset = -2.56f;
     [SerializeField] private float searchTimeoutSeconds = 5f;
+    
+    // Bewegen auf Z-Achse
+    [SerializeField] private float yOffset = -1.0f;
 
     private Transform trackingOrigin;
 
@@ -34,6 +37,7 @@ public class TrackerCentering : MonoBehaviour
         // This shifts the entire tracking space because the tracker is its child
         Vector3 p = trackingOrigin.position;   // world space
         p.z += zOffset;                         // -2.56
+        p.y = yOffset;
         trackingOrigin.position = p;
     }
 }
