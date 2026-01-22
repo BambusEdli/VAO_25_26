@@ -929,7 +929,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExperimentController
   head: {fileID: 1623653223}
-  gazeTransform: {fileID: 0}
   sourceMarkerPrefab: {fileID: 1348556603}
   sphereRadius: 10
   asioSourceTransform: {fileID: 1615900137}
@@ -1256,7 +1255,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1623653222}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4b8f8479fbaeff41a0a8282419d59d9, type: 3}
   m_Name: 
@@ -1389,7 +1388,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GazeVisualizer
   head: {fileID: 1623653223}
   gazeLength: 10
-  experiment: {fileID: 1032955940}
 --- !u!114 &1623653227
 MonoBehaviour:
   m_ObjectHideFlags: 0
