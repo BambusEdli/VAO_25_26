@@ -60,7 +60,10 @@ namespace ViveTrackers
         public Vector3 headOffsetEuler = Vector3.zero;
         private Quaternion _headOffset = Quaternion.identity;
 
-        // ... danach kommen deine Properties (ID, IsConnected, etc.)
+        [Header("Head stabilization")]
+        [Tooltip("Wenn true, wird Roll (Seitneigung) aus der Kopfrotation entfernt. "
+       + "Hilfreich, wenn der Tracker mechanisch schief montiert ist oder bei starkem Nicken die Ansicht 'wegkippt'.")]
+        public bool lockRoll = true;
 
 
         private void RecomputeMountingOffset()
@@ -306,22 +309,42 @@ namespace ViveTrackers
             // ROTATION
             if (isRotValid)
             {
-                // 1) Rohrotation vom OpenVR-Tracker
                 Quaternion rawRotation = pLocalRotation;
 
-                // 2) Mounting-Korrektur: Tracker ist physisch schief montiert
+                // 1) Montierungs-Korrektur
                 Quaternion correctedRotation = rawRotation * _mountingOffset;
 
-                // 3) _lastValidLocalRotation wird NACH Mount-Korrektur gemerkt
-                //    (wichtig für Calibrate(), damit die Kalibrierung auf der "richtigen" Achse arbeitet)
+                // 2) Für Calibrate() merken wir uns die Rotation NACH Mount-Korrektur,
+                //    aber VOR Head-Offset/LockRoll.
                 _lastValidLocalRotation = correctedRotation;
 
-                // 4) Finale Rotation:
-                //    - correctedRotation  : Hardware + Mount-Korrektur
-                //    - _calibration       : Kalibrierung (F8 etc.)
-                //    - _headOffset        : zusätzliches Head-Offset wie früher im HeadRotation-Script
-                _transform.localRotation = correctedRotation * _calibration * _headOffset;
+                // 3) Gesamtrotation inkl. Kalibrierung + HeadOffset
+                Quaternion finalRotation = correctedRotation * _calibration * _headOffset;
+
+                // 4) Optional: Roll entfernen (nur Yaw + Pitch lassen)
+                if (lockRoll)
+                {
+                    // Blickrichtung aus finalRotation
+                    Vector3 fwd = finalRotation * Vector3.forward;
+                    if (fwd.sqrMagnitude < 1e-6f)
+                    {
+                        fwd = Vector3.forward;
+                    }
+
+                    // Yaw: Drehung um Welt-Y, anhand Projektion auf XZ-Ebene
+                    float yaw = Mathf.Atan2(fwd.x, fwd.z) * Mathf.Rad2Deg;
+
+                    // Pitch: Neigung (hoch/runter) relativ zur Horizontalen
+                    float pitch = Mathf.Atan2(-fwd.y, new Vector2(fwd.x, fwd.z).magnitude) * Mathf.Rad2Deg;
+
+                    // Reine Yaw+Pitch-Rotation (kein Roll)
+                    finalRotation = Quaternion.Euler(pitch, yaw, 0f);
+                }
+
+                // 5) Ergebnis an Transform schreiben
+                _transform.localRotation = finalRotation;
             }
+
         }
 
         /// <summary>
