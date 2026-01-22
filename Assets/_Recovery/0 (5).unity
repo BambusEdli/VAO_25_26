@@ -1107,7 +1107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrialStateController
   head: {fileID: 1623653223}
   experiment: {fileID: 1032955940}
-  simulatedStimulusDuration: 20
+  simulatedStimulusDuration: 2
   maxAllowedHeadDeviation: 20
   subjectId: S01
   subjectName: Jelde Schipper
@@ -1274,7 +1274,7 @@ PrefabInstance:
       objectReference: {fileID: 502317762}
     - target: {fileID: 7012293237717679657, guid: ac67e32fc492bb04fac966696fc954a1, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7012293237717679657, guid: ac67e32fc492bb04fac966696fc954a1, type: 3}
       propertyPath: _sourceIndex
@@ -1290,6 +1290,89 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 297575385805896569, guid: ac67e32fc492bb04fac966696fc954a1, type: 3}
   m_PrefabInstance: {fileID: 1348556602}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1456684726
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1456684729}
+  - component: {fileID: 1456684728}
+  - component: {fileID: 1456684727}
+  m_Layer: 0
+  m_Name: TestMopped
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1456684727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456684726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1c322c29be97c4880cce7921e5502b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AsioAudioUnity::SourcePositionOsc
+  _osc: {fileID: 502317762}
+  _sourceIndex: 1
+--- !u!114 &1456684728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456684726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58f38d2f40c7f4445bdb1a9930a62965, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AsioAudioUnity::AsioAudioUnity.CustomAsioAudioSource
+  _audioFilePath: 
+  _targetOutputChannel: 2
+  _referencedAsioAudioManager: {fileID: 0}
+  _volume: 1
+  _playOnEnable: 1
+  _loop: 0
+  _channels: 0
+  _sampleRate: 0
+  _averageBytesPerSecond: 0
+  _blockAlign: 0
+  _bitsPerSample: 0
+  _extraSize: 0
+  _audioFileTotalLength: 0
+  _audioStatus: 0
+  _currentTimestamp: 0
+  _onPlay:
+    m_PersistentCalls:
+      m_Calls: []
+  _onStop:
+    m_PersistentCalls:
+      m_Calls: []
+  _onPause:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &1456684729
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456684726}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1615900135
 GameObject:
   m_ObjectHideFlags: 0
@@ -1874,3 +1957,4 @@ SceneRoots:
   - {fileID: 2060029811}
   - {fileID: 1236269908}
   - {fileID: 1348556602}
+  - {fileID: 1456684729}

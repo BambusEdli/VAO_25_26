@@ -49,7 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ViveTrackers.ViveTracker
   imuOnlyReliablePositionDuration: 0.033
   debugTransform: {fileID: 3437870263739049456}
-  mountingOffsetEuler: {x: 90, y: 0, z: 180}
+  mountingOffsetEuler: {x: 180, y: 0, z: 180}
   headOffsetEuler: {x: 90, y: 180, z: 0}
 --- !u!114 &3437870263739049456
 MonoBehaviour:
