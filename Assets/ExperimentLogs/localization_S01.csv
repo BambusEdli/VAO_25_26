@@ -1,19 +1,12 @@
-timestamp;subjectId;subjectName;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;responseTimeSec;maxHeadDeviationDeg;headDeviationExceeded
-2026-01-22 16:32:49;S01;Jelde Schipper;1;HOA3rdOrder;Tone;2;126,4;-6,1;153,765;45,362;9,0;0
-2026-01-22 16:33:02;S01;Jelde Schipper;2;HOA4thOrder;Voice;1;85,8;22,9;83,036;4,358;8,5;0
-2026-01-22 16:43:05;S01;Jelde Schipper;1;Binaural;Tone;4;348,4;3,8;151,594;69,685;0,7;0
-2026-01-22 16:43:26;S01;Jelde Schipper;2;Binaural;Music;3;269,5;11,8;175,532;9,340;5,8;0
-2026-01-22 16:43:48;S01;Jelde Schipper;3;HOA4thOrder;Voice;4;317,2;-4,7;158,311;7,708;9,7;0
-2026-01-22 16:53:17;S01;Jelde Schipper;4;HOA3rdOrder;Music;4;295,6;1,9;75,299;57,143;0,0;0
-2026-01-22 16:53:35;S01;Jelde Schipper;5;HOA4thOrder;Voice;2;126,9;-18,0;110,442;1,007;0,0;0
-2026-01-22 17:04:31;S01;Jelde Schipper;6;HOA4thOrder;Tone;1;66,8;15,9;67,974;5,600;0,0;0
-2026-01-22 17:09:35;S01;Jelde Schipper;7;HOA4thOrder;Music;1;78,5;-23,9;107,368;52,864;0,0;0
-2026-01-22 17:44:55;S01;Jelde Schipper;1;Binaural;Voice;1;42,5;7,8;71,815;1,361;0,0;0
-2026-01-22 17:46:03;S01;Jelde Schipper;2;Binaural;Music;2;157,5;-8,3;142,763;55,135;0,0;0
-2026-01-22 17:46:15;S01;Jelde Schipper;3;HOA3rdOrder;Music;2;146,8;20,6;156,258;8,048;0,0;0
-2026-01-22 17:46:31;S01;Jelde Schipper;4;HOA4thOrder;Music;2;173,2;-12,4;124,466;10,048;0,0;0
-2026-01-22 17:46:53;S01;Jelde Schipper;5;Binaural;Voice;3;226,7;-17,8;73,564;16,336;0,0;0
-2026-01-22 17:47:15;S01;Jelde Schipper;6;Binaural;Music;1;60,3;-9,5;88,690;19,025;0,0;0
-2026-01-22 17:52:07;S01;Jelde Schipper;1;HOA4thOrder;Tone;3;211,5;-26,8;54,557;1,040;87,5;1
-2026-01-22 17:53:16;S01;Jelde Schipper;2;HOA3rdOrder;Music;4;279,8;-13,2;56,083;5,393;70,2;1
-2026-01-22 17:55:00;S01;Jelde Schipper;3;Binaural;Voice;4;337,9;13,3;9,261;49,786;102,5;1
+timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;errorAzDeg;errorElDeg;responseTimeSec;maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded
+2026-01-22 18:35:48;S01;1;HOA4thOrder;Tone;4;285,6;-54,1;9,281;3,929;8,930;35,552;0,0;0,0;0,0;0
+2026-01-22 18:36:06;S01;2;HOA3rdOrder;Music;3;202,9;15,3;72,096;71,909;-13,570;8,427;0,0;0,0;0,0;0
+2026-01-22 18:36:16;S01;3;Binaural;Tone;3;261,6;-49,3;52,755;17,228;50,620;0,051;0,0;0,0;0,0;0
+2026-01-22 18:36:24;S01;4;HOA3rdOrder;Voice;1;78,6;73,0;102,752;-163,202;-69,415;5,283;2,4;0,0;2,4;0
+2026-01-22 18:36:40;S01;5;HOA4thOrder;Tone;3;195,3;17,3;78,380;76,923;-20,091;8,090;0,0;0,0;0,0;0
+2026-01-22 18:53:38;S01;1;Binaural;Voice;3;237,0;-36,1;42,404;29,354;32,653;20,946;0,0;0,0;0,0;0
+2026-01-22 18:54:33;S01;1;HOA3rdOrder;Tone;2;168,5;54,5;125,554;-144,678;-62,487;17,690;45,2;43,5;20,4;1
+2026-01-22 18:54:50;S01;2;Binaural;Music;2;151,5;-13,0;100,012;-99,287;17,349;11,472;0,0;0,0;0,0;0
+2026-01-22 18:54:59;S01;3;Binaural;Tone;4;301,2;33,1;10,273;11,071;-3,973;3,424;44,2;43,6;9,2;1
+2026-01-22 18:55:10;S01;4;HOA3rdOrder;Music;1;31,6;19,8;21,583;22,829;4,341;2,324;4,6;3,6;2,9;0
+2026-01-22 18:55:15;S01;5;HOA4thOrder;Tone;3;219,1;-59,6;78,085;52,501;66,241;1,033;14,8;14,6;4,1;0

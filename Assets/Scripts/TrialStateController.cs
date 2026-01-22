@@ -2,35 +2,38 @@ using System.IO;
 using UnityEngine;
 
 /// <summary>
-/// Steuert den Ablauf eines einzelnen Trials über die Tasten 1-2-3:
-/// 1: Ausgangsblickrichtung (Baseline) loggen
-/// 2: Stimulus starten (Audio + Stimulusphase)
-/// 3: Antwort einloggen und Fehler berechnen
-/// Zusätzlich: Kopfbewegungs-Constraint und Logging in eine CSV-Datei.
+/// Bedienung:
+/// - SPACE (1. Druck): Baseline loggen + Stimulus starten (Schritt 1 & 2 zusammen)
+/// - SPACE (nach Stimulus-Ende): Antwort loggen (Schritt 3)
+/// 
+/// Zusätzlich:
+/// - Kopfbewegungs-Tracking während der Hörphase
+/// - CSV-Export
+/// - Fehlerausgabe: Gesamtwinkel + Azimut-/Elevationsfehler
 /// </summary>
 public class TrialStateController : MonoBehaviour
 {
     [Header("Referenzen")]
-    [Tooltip("Head-Transform (Kamera/Tracker)")]
+    [Tooltip("Head-Transform (Tracker-/Rig-Transform). Wird für Still-Sitzen (Quaternion.Angle) verwendet.")]
     public Transform head;
+
+    [Tooltip("Optional: Transform, dessen forward als Blickrichtung verwendet wird (z.B. die Kamera). Wenn leer, wird head.forward verwendet.")]
+    public Transform gazeTransform;
 
     [Tooltip("Controller für Quelle, Trial-Design und Fehlerberechnung")]
     public ExperimentController experiment;
 
-    [Header("Stimulus-Einstellungen (Simulation)")]
-    [Tooltip("Dauer des Stimulus in Sekunden (für ersten Prototyp)")]
+    [Header("Stimulus")]
+    [Tooltip("Dauer des Stimulus in Sekunden (für Timing/Antwortzeit)")]
     public float simulatedStimulusDuration = 2.0f;
 
     [Header("Head-Movement-Constraint")]
-    [Tooltip("Maximale erlaubte Abweichung vom Baseline-Heading in Grad während Baseline + Stimulus")]
+    [Tooltip("Maximale erlaubte Abweichung vom Baseline-Heading in Grad während der Hörphase")]
     public float maxAllowedHeadDeviation = 25f;
 
     [Header("Logging")]
     [Tooltip("ID der Versuchsperson (für CSV-Log, z.B. S01, VP03)")]
     public string subjectId = "S01";
-
-    [Tooltip("Name der Versuchsperson (optional, kann auch leer bleiben)")]
-    public string subjectName = "";
 
     [Tooltip("Wenn true: Logs nach Assets/ExperimentLogs, sonst in persistentDataPath/ExperimentLogs.")]
     public bool logUnderAssetsFolder = false;
@@ -38,7 +41,6 @@ public class TrialStateController : MonoBehaviour
     private enum TrialState
     {
         Idle,
-        BaselineLogged,
         StimulusPlaying,
         WaitingForResponse
     }
@@ -46,10 +48,17 @@ public class TrialStateController : MonoBehaviour
     private TrialState state = TrialState.Idle;
 
     private Quaternion baselineRotation;
-    private float stimulusOffsetTime;   // Zeitpunkt, wenn Stimulus fertig ist
+    private float stimulusOffsetTime; // Zeitpunkt, wenn Stimulus fertig ist
+    private bool stimulusFinishedLogged = false;
 
-    // Tracking der Kopfbewegung pro Trial
-    private float maxHeadDeviationThisTrial = 0f;
+    // Baseline Az/El (für Yaw/Pitch-Abweichungen)
+    private float baselineAzDeg = 0f;
+    private float baselineElDeg = 0f;
+
+    // Movement Tracking pro Trial
+    private float maxHeadDeviationThisTrial = 0f;    // Gesamtwinkel
+    private float maxYawDeviationThisTrial = 0f;     // |ΔAz| zur Baseline
+    private float maxPitchDeviationThisTrial = 0f;   // |ΔEl| zur Baseline
     private bool headDeviationExceededThisTrial = false;
 
     // Logging
@@ -62,142 +71,93 @@ public class TrialStateController : MonoBehaviour
 
     private void Update()
     {
-        // Wenn Experiment schon beendet ist, Eingaben ignorieren
+        // Experiment beendet?
         if (experiment != null && experiment.IsExperimentFinished && state == TrialState.Idle)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1) ||
-                Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2) ||
-                Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
                 Debug.Log("TrialStateController: Experiment ist abgeschlossen. Keine weiteren Trials.");
             }
-
             return;
         }
 
-        // Taste 1: Baseline loggen
-        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            OnKey1();
+            HandleSpace();
         }
 
-        // Taste 2: Stimulus starten
-        if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
-        {
-            OnKey2();
-        }
-
-        // Taste 3: Antwort loggen
-        if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
-        {
-            OnKey3();
-        }
-
-        // Stimulus-Status überwachen (Wechsel StimulusPlaying -> WaitingForResponse)
         UpdateStimulusState();
-
-        // Kopfbewegung während Baseline/Stimulus tracken
         TrackHeadMovement();
     }
 
-    #region Logging-Initialisierung
+    #region Helpers: Gaze + Az/El
 
-    private void InitLogFile()
+    private Vector3 GetCurrentGazeDirection()
     {
-        string baseDir = logUnderAssetsFolder
-            ? Application.dataPath
-            : Application.persistentDataPath;
-
-        string logDir = Path.Combine(baseDir, "ExperimentLogs");
-        if (!Directory.Exists(logDir))
-        {
-            Directory.CreateDirectory(logDir);
-        }
-
-        string safeSubjectId = string.IsNullOrWhiteSpace(subjectId) ? "unknown" : subjectId.Trim();
-        string fileName = $"localization_{safeSubjectId}.csv";
-
-        logFilePath = Path.Combine(logDir, fileName);
-
-        if (!File.Exists(logFilePath))
-        {
-            string header =
-                "timestamp;subjectId;subjectName;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;responseTimeSec;maxHeadDeviationDeg;headDeviationExceeded";
-            File.WriteAllText(logFilePath, header + "\n");
-        }
-
-        Debug.Log($"Logging initialisiert. Log-Datei: {logFilePath}");
+        Transform t = gazeTransform != null ? gazeTransform : head;
+        if (t == null) return Vector3.forward;
+        return t.forward;
     }
 
-    private void AppendTrialLog(
-        int designTrialIndex,
-        ExperimentController.RepresentationType representation,
-        ExperimentController.SignalType signalType,
-        int quadrantIndex,
-        float targetAzDeg,
-        float targetElDeg,
-        float errorAngle,
-        float responseTimeSec,
-        float maxHeadDeviationDeg,
-        bool headDeviationExceeded)
+    // Konvention passend zu SphericalCoords:
+    // Azimut: 0° = +Z (vorne), +90° = +X (rechts), Bereich [-180, 180]
+    // Elevation: 0° = Horizont, +90° = oben
+    private static void DirectionToAzEl(Vector3 dir, out float azDeg, out float elDeg)
     {
-        string timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        int exceededFlag = headDeviationExceeded ? 1 : 0;
+        if (dir.sqrMagnitude < 1e-8f)
+        {
+            azDeg = 0f;
+            elDeg = 0f;
+            return;
+        }
 
-        string sanitizedName = subjectName?.Replace(";", ",") ?? "";
-        int quadrantHuman = quadrantIndex + 1; // 1..4
+        dir.Normalize();
+        azDeg = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
 
-        string line = string.Format(
-            "{0};{1};{2};{3};{4};{5};{6};{7:F1};{8:F1};{9:F3};{10:F3};{11:F1};{12}",
-            timestamp,
-            subjectId,
-            sanitizedName,
-            designTrialIndex,
-            representation,
-            signalType,
-            quadrantHuman,
-            targetAzDeg,
-            targetElDeg,
-            errorAngle,
-            responseTimeSec,
-            maxHeadDeviationDeg,
-            exceededFlag
-        );
-
-        File.AppendAllText(logFilePath, line + "\n");
+        float horiz = Mathf.Sqrt(dir.x * dir.x + dir.z * dir.z);
+        elDeg = Mathf.Atan2(dir.y, horiz) * Mathf.Rad2Deg;
     }
 
     #endregion
 
-    #region State-Callbacks für 1-2-3
+    #region Input Handling
 
-    private void OnKey1()
+    private void HandleSpace()
     {
-        if (state != TrialState.Idle)
+        switch (state)
         {
-            Debug.LogWarning("Key 1 gedrückt, aber TrialState ist nicht Idle.");
-            return;
-        }
+            case TrialState.Idle:
+                StartBaselineAndStimulus();
+                break;
 
+            case TrialState.StimulusPlaying:
+                // Falls der Stimulus bereits vorbei ist, aber UpdateStimulusState noch nicht umgeschaltet hat:
+                if (Time.time >= stimulusOffsetTime)
+                {
+                    FinishStimulusPhaseIfNeeded();
+                    LogResponseAndAdvance();
+                }
+                else
+                {
+                    Debug.Log("Noch nicht: Stimulus läuft noch. Warte bis er fertig ist, dann SPACE für Antwort.");
+                }
+                break;
+
+            case TrialState.WaitingForResponse:
+                LogResponseAndAdvance();
+                break;
+        }
+    }
+
+    #endregion
+
+    #region Trial Flow
+
+    private void StartBaselineAndStimulus()
+    {
         if (head == null)
         {
             Debug.LogError("TrialStateController: head ist nicht gesetzt.");
-            return;
-        }
-
-        baselineRotation = head.rotation;
-        maxHeadDeviationThisTrial = 0f;
-        headDeviationExceededThisTrial = false;
-
-        state = TrialState.BaselineLogged;
-        Debug.Log("Baseline logged: " + baselineRotation.eulerAngles);
-    }
-
-    private void OnKey2()
-    {
-        if (state != TrialState.BaselineLogged)
-        {
-            Debug.LogWarning("Key 2 nur nach Key 1 (BaselineLogged) erlaubt.");
             return;
         }
 
@@ -207,49 +167,104 @@ public class TrialStateController : MonoBehaviour
             return;
         }
 
-        float stimulusDuration = simulatedStimulusDuration;
+        // Baseline setzen
+        baselineRotation = head.rotation;
 
-        // Hier jetzt wirklich den Stimulus starten:
-        //  - Routing in Reaper nach aktuellem Trial
-        //  - JumpToStart + Play + nach Dauer Stop
-        //  - optional zusätzlich Unity-Audio (in StartStimulusForCurrentTrial)
-        experiment.StartStimulusForCurrentTrial(stimulusDuration);
+        Vector3 gazeDir = GetCurrentGazeDirection();
+        DirectionToAzEl(gazeDir, out baselineAzDeg, out baselineElDeg);
 
-        // Lokalen Timer für die Antwortphase setzen
-        stimulusOffsetTime = Time.time + stimulusDuration;
+        // Trial-Tracking resetten
+        maxHeadDeviationThisTrial = 0f;
+        maxYawDeviationThisTrial = 0f;
+        maxPitchDeviationThisTrial = 0f;
+        headDeviationExceededThisTrial = false;
+        stimulusFinishedLogged = false;
+
+        // Stimulus starten (inkl. Reaper/OSC-Routing – bleibt in ExperimentController)
+        float dur = simulatedStimulusDuration;
+
+        experiment.StartStimulusForCurrentTrial(dur);
+
+        stimulusOffsetTime = Time.time + dur;
         state = TrialState.StimulusPlaying;
 
-        Debug.Log("Stimulus gestartet, Dauer: " + stimulusDuration + " s");
+        Debug.Log($"Baseline+Stimulus gestartet (SPACE). BaselineAz={baselineAzDeg:F1}°, BaselineEl={baselineElDeg:F1}°, Dauer={dur:F2}s");
+    }
+
+    private void FinishStimulusPhaseIfNeeded()
+    {
+        if (state != TrialState.StimulusPlaying)
+            return;
+
+        state = TrialState.WaitingForResponse;
+
+        if (!stimulusFinishedLogged)
+        {
+            stimulusFinishedLogged = true;
+
+            // Kleiner Log direkt nach Stimulus-Ende (hilft beim Debugging/Timing)
+            if (experiment != null)
+            {
+                int tn = experiment.GetCurrentTrialNumber();
+                int total = experiment.GetTotalTrialCount();
+                Debug.Log($"Stimulus-Ende (Trial {tn}/{total}). Wechsel in Antwortphase.");
+            }
+            else
+            {
+                Debug.Log("Stimulus-Ende. Wechsel in Antwortphase.");
+            }
+
+            // Ausgabe zur maximalen Kopfbewegung (inkl. möglicher Überschreitung) genau an diesem Punkt
+            if (headDeviationExceededThisTrial)
+            {
+                Debug.Log(
+                    $"Achtung: Kopfbewegung > {maxAllowedHeadDeviation:F1}°. " +
+                    $"MaxGesamt={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
+                );
+            }
+            else
+            {
+                Debug.Log(
+                    $"Kopfbewegung ok. " +
+                    $"MaxGesamt={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
+                );
+            }
+
+            Debug.Log("Stimulus fertig. SPACE zum Einloggen der Antwort.");
+        }
     }
 
 
-    private void OnKey3()
+    private void LogResponseAndAdvance()
     {
-        if (state != TrialState.WaitingForResponse)
+        if (experiment == null)
         {
-            Debug.LogWarning("Key 3 gedrückt, aber TrialState ist nicht WaitingForResponse.");
+            Debug.LogError("TrialStateController: experiment fehlt.");
             return;
         }
 
-        if (head == null || experiment == null)
-        {
-            Debug.LogError("TrialStateController: head oder experiment fehlt.");
-            return;
-        }
-
+        // Antwortzeit (Ende Stimulus -> Tastendruck)
         float responseTime = Time.time - stimulusOffsetTime;
 
-        // Blickrichtung über ExperimentController holen (gemeinsame Logik)
-        Vector3 headDir = experiment.GetGazeDirection();
+        // Blickrichtung & Zielrichtung
+        Vector3 headDir = GetCurrentGazeDirection();
         Vector3 sourceDir = experiment.GetSourceDirection();
 
+        // Gesamtfehler
         float errorAngle = Vector3.Angle(headDir, sourceDir);
 
+        // Fehler in Az/El
+        DirectionToAzEl(headDir, out float headAz, out float headEl);
+        DirectionToAzEl(sourceDir, out float tgtAz, out float tgtEl);
 
-        Debug.Log($"Antwort geloggt. ResponseTime = {responseTime:F3} s, Error = {errorAngle:F1}°");
-        Debug.Log($"headDir = {headDir}, sourceDir = {sourceDir}");
+        float errorAz = Mathf.DeltaAngle(tgtAz, headAz);  // [-180..180]
+        float errorEl = headEl - tgtEl;
 
-        // Trial-Metadaten aus ExperimentController holen
+        Debug.Log(
+            $"Antwort geloggt (SPACE). RT={responseTime:F3}s, Error={errorAngle:F1}° (AzErr={errorAz:F1}°, ElErr={errorEl:F1}°)"
+        );
+
+        // Trial-Metadaten aus ExperimentController
         int designTrialIndex = experiment.GetCurrentTrialNumber();
         var representation = experiment.GetCurrentRepresentation();
         var signalType = experiment.GetCurrentSignalType();
@@ -257,11 +272,6 @@ public class TrialStateController : MonoBehaviour
         float targetAz = experiment.GetCurrentTargetAzimuth();
         float targetEl = experiment.GetCurrentTargetElevation();
 
-        Debug.Log(
-            $"Trial-Metadaten: Trial #{designTrialIndex}, Rep={representation}, Signal={signalType}, " +
-            $"Quadrant={quadrantIndex + 1}, TargetAz={targetAz:F1}°, TargetEl={targetEl:F1}°");
-
-        // In CSV-Datei schreiben
         AppendTrialLog(
             designTrialIndex,
             representation,
@@ -270,8 +280,12 @@ public class TrialStateController : MonoBehaviour
             targetAz,
             targetEl,
             errorAngle,
+            errorAz,
+            errorEl,
             responseTime,
             maxHeadDeviationThisTrial,
+            maxYawDeviationThisTrial,
+            maxPitchDeviationThisTrial,
             headDeviationExceededThisTrial
         );
 
@@ -291,54 +305,115 @@ public class TrialStateController : MonoBehaviour
 
     private void UpdateStimulusState()
     {
-        if (state == TrialState.StimulusPlaying)
+        if (state == TrialState.StimulusPlaying && Time.time >= stimulusOffsetTime)
         {
-            if (Time.time >= stimulusOffsetTime)
-            {
-                state = TrialState.WaitingForResponse;
-
-                if (headDeviationExceededThisTrial)
-                {
-                    Debug.Log(
-                        $"Achtung: Kopfbewegung hat die erlaubte Abweichung von {maxAllowedHeadDeviation:F1}° " +
-                        $"überschritten. Maximale Abweichung: {maxHeadDeviationThisTrial:F1}°"
-                    );
-                }
-                else
-                {
-                    Debug.Log(
-                        $"Kopfbewegung innerhalb des Limits. " +
-                        $"Maximale Abweichung in diesem Trial: {maxHeadDeviationThisTrial:F1}°"
-                    );
-                }
-
-                Debug.Log("Stimulus fertig. Warte auf Antwort (Key 3)...");
-            }
+            FinishStimulusPhaseIfNeeded();
         }
     }
 
     /// <summary>
-    /// Trackt die Kopfbewegung relativ zur Baseline während BaselineLogged + StimulusPlaying.
+    /// Trackt Kopfbewegung während der Hörphase (StimulusPlaying).
+    /// - Gesamtwinkel weiterhin über Quaternion.Angle
+    /// - Zusätzlich Yaw/Pitch-Abweichung über Az/El der Blickrichtung
     /// </summary>
     private void TrackHeadMovement()
     {
         if (head == null)
             return;
 
-        if (state != TrialState.BaselineLogged && state != TrialState.StimulusPlaying)
+        if (state != TrialState.StimulusPlaying)
             return;
 
+        // 1) Gesamtwinkel-Abweichung (wie vorher)
         float deviation = Quaternion.Angle(baselineRotation, head.rotation);
-
         if (deviation > maxHeadDeviationThisTrial)
-        {
             maxHeadDeviationThisTrial = deviation;
-        }
 
         if (deviation > maxAllowedHeadDeviation)
-        {
             headDeviationExceededThisTrial = true;
+
+        // 2) Yaw/Pitch-Abweichung über Blickrichtung
+        Vector3 gazeDir = GetCurrentGazeDirection();
+        DirectionToAzEl(gazeDir, out float az, out float el);
+
+        float yawDev = Mathf.Abs(Mathf.DeltaAngle(baselineAzDeg, az));
+        float pitchDev = Mathf.Abs(el - baselineElDeg);
+
+        if (yawDev > maxYawDeviationThisTrial) maxYawDeviationThisTrial = yawDev;
+        if (pitchDev > maxPitchDeviationThisTrial) maxPitchDeviationThisTrial = pitchDev;
+    }
+
+    #endregion
+
+    #region CSV Logging
+
+    private void InitLogFile()
+    {
+        string baseDir = logUnderAssetsFolder
+            ? Application.dataPath
+            : Application.persistentDataPath;
+
+        string logDir = Path.Combine(baseDir, "ExperimentLogs");
+        if (!Directory.Exists(logDir))
+            Directory.CreateDirectory(logDir);
+
+        string safeSubjectId = string.IsNullOrWhiteSpace(subjectId) ? "unknown" : subjectId.Trim();
+        string fileName = $"localization_{safeSubjectId}.csv";
+        logFilePath = Path.Combine(logDir, fileName);
+
+        if (!File.Exists(logFilePath))
+        {
+            string header =
+                "timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;" +
+                "errorDeg;errorAzDeg;errorElDeg;responseTimeSec;" +
+                "maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded";
+            File.WriteAllText(logFilePath, header + "\n");
         }
+
+        Debug.Log($"Logging initialisiert. Log-Datei: {logFilePath}");
+    }
+
+    private void AppendTrialLog(
+        int designTrialIndex,
+        ExperimentController.RepresentationType representation,
+        ExperimentController.SignalType signalType,
+        int quadrantIndex,
+        float targetAzDeg,
+        float targetElDeg,
+        float errorAngleDeg,
+        float errorAzDeg,
+        float errorElDeg,
+        float responseTimeSec,
+        float maxHeadDeviationDeg,
+        float maxYawDeviationDeg,
+        float maxPitchDeviationDeg,
+        bool headDeviationExceeded)
+    {
+        string timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        int exceededFlag = headDeviationExceeded ? 1 : 0;
+        int quadrantHuman = quadrantIndex + 1;
+
+        string line = string.Format(
+            "{0};{1};{2};{3};{4};{5};{6:F1};{7:F1};{8:F3};{9:F3};{10:F3};{11:F3};{12:F1};{13:F1};{14:F1};{15}",
+            timestamp,
+            subjectId,
+            designTrialIndex,
+            representation,
+            signalType,
+            quadrantHuman,
+            targetAzDeg,
+            targetElDeg,
+            errorAngleDeg,
+            errorAzDeg,
+            errorElDeg,
+            responseTimeSec,
+            maxHeadDeviationDeg,
+            maxYawDeviationDeg,
+            maxPitchDeviationDeg,
+            exceededFlag
+        );
+
+        File.AppendAllText(logFilePath, line + "\n");
     }
 
     #endregion
