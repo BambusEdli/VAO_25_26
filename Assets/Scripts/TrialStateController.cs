@@ -239,10 +239,12 @@ public class TrialStateController : MonoBehaviour
 
         float responseTime = Time.time - stimulusOffsetTime;
 
-        Vector3 headDir = head.forward;
+        // Blickrichtung über ExperimentController holen (gemeinsame Logik)
+        Vector3 headDir = experiment.GetGazeDirection();
         Vector3 sourceDir = experiment.GetSourceDirection();
 
         float errorAngle = Vector3.Angle(headDir, sourceDir);
+
 
         Debug.Log($"Antwort geloggt. ResponseTime = {responseTime:F3} s, Error = {errorAngle:F1}°");
         Debug.Log($"headDir = {headDir}, sourceDir = {sourceDir}");

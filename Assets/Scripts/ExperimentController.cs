@@ -13,6 +13,9 @@ public class ExperimentController : MonoBehaviour
     [Tooltip("Head-Objekt mit Kamera / Tracker-Rotation")]
     public Transform head;
 
+    [Tooltip("Optional: Transform, dessen Vorwärtsrichtung als Blickrichtung verwendet wird (z.B. Kamera). Wenn null, wird 'head' verwendet.")]
+    public Transform gazeTransform;
+
     [Tooltip("Prefab für den visuellen Marker der Schallquelle")]
     public GameObject sourceMarkerPrefab;
 
@@ -204,37 +207,64 @@ public class ExperimentController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Liefert die aktuelle Blickrichtung im Weltkoordinatensystem.
+    /// Wenn gazeTransform gesetzt ist, wird dessen forward genutzt, sonst head.forward.
+    /// </summary>
+    public Vector3 GetGazeDirection()
+    {
+        Transform t = gazeTransform != null ? gazeTransform : head;
+        if (t == null) return Vector3.forward;
+        return t.forward;
+    }
+
+    /// <summary>
+    /// Liefert die Position, von der aus wir den Winkel zur Quelle berechnen.
+    /// Wenn gazeTransform gesetzt ist, wird dessen Position genutzt, sonst head.position.
+    /// </summary>
+    public Vector3 GetGazePosition()
+    {
+        Transform t = gazeTransform != null ? gazeTransform : head;
+        if (t == null) return Vector3.zero;
+        return t.position;
+    }
+
+
 
     /// <summary>
     /// Berechnet den Winkel zwischen Kopf-Vorwärtsrichtung und Quelle in Grad.
     /// </summary>
     public float ComputeAngularError()
     {
-        if (head == null || currentSourceMarker == null)
+        if (currentSourceMarker == null || (head == null && gazeTransform == null))
         {
-            Debug.LogWarning("ExperimentController: head oder currentSourceMarker fehlt.");
+            Debug.LogWarning("ExperimentController: head/gazeTransform oder currentSourceMarker fehlt.");
             return 0f;
         }
 
-        Vector3 headDir = head.forward;
-        Vector3 toSource = (currentSourceMarker.transform.position - head.position).normalized;
+        Vector3 headDir = GetGazeDirection();
+        Vector3 headPos = GetGazePosition();
+        Vector3 toSource = (currentSourceMarker.transform.position - headPos).normalized;
 
         float angle = Vector3.Angle(headDir, toSource);
         return angle;
     }
+
 
     /// <summary>
     /// Gibt den aktuellen Richtungsvektor zur Quelle zurück (normalisiert), falls benötigt.
     /// </summary>
     public Vector3 GetSourceDirection()
     {
-        if (currentSourceMarker == null || head == null)
+        if (currentSourceMarker == null)
         {
             return Vector3.forward;
         }
 
-        return (currentSourceMarker.transform.position - head.position).normalized;
+        Vector3 headPos = GetGazePosition();
+        return (currentSourceMarker.transform.position - headPos).normalized;
     }
+
 
     /// <summary>
     /// Spielt den Sound der aktuellen Quelle ab:
