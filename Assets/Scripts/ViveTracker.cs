@@ -52,8 +52,12 @@ namespace ViveTrackers
         [Tooltip("Rotation from tracker axes to desired object/head axes (in degrees). " +
                  "Use this if the tracker is mounted sideways or tilted.")]
         public Vector3 mountingOffsetEuler = Vector3.zero;
-
         private Quaternion _mountingOffset = Quaternion.identity;
+
+        [Header("Head orientation offset")]
+        [Tooltip("Zusätzlicher Rotations-Offset (in Grad), um die Ausrichtung von Kopf/Kamera feinzujustieren.")]
+        public Vector3 headOffsetEuler = Vector3.zero;
+        private Quaternion _headOffset = Quaternion.identity;
 
         [Header("Rotation Debug Locks")]
         [Tooltip("Wenn true, wird Rotation um die lokale X-Achse (Pitch) unterdrückt.")]
@@ -65,14 +69,15 @@ namespace ViveTrackers
         [Tooltip("Wenn true, wird Rotation um die lokale Z-Achse (Roll) unterdrückt.")]
         public bool lockZRotation = false;
 
-        private void RecomputeMountingOffset()
+        private void RecomputeOffsets()
         {
             _mountingOffset = Quaternion.Euler(mountingOffsetEuler);
+            _headOffset = Quaternion.Euler(headOffsetEuler);
         }
 
         private void OnValidate()
         {
-            RecomputeMountingOffset();
+            RecomputeOffsets();
         }
 
 
@@ -253,25 +258,26 @@ namespace ViveTrackers
 		private bool _touchPadState = false;
 		private bool _menuState = false;
 		private uint _packetNum = 0u;
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public void Init(ViveTrackerID pID, string pName)
-		{
-			_transform = transform;
-			IsConnected = IsPositionValid = IsRotationValid = false;
-			GripState = TriggerState = TouchPadState = MenuState = false;
-			_packetNum = 0u;
-			ID = pID;
-			name = pName;
+        #region Public Methods
+        public void Init(ViveTrackerID pID, string pName)
+        {
+            _transform = transform;
+            IsConnected = IsPositionValid = IsRotationValid = false;
+            GripState = TriggerState = TouchPadState = MenuState = false;
+            _packetNum = 0u;
+            ID = pID;
+            name = pName;
 
-            RecomputeMountingOffset();
+            RecomputeOffsets();
         }
 
-		/// <summary>
-		/// Align transformation with origin's transformation and keep the offset to apply during the next frames. 
-		/// </summary>
-		public void Calibrate()
+
+        /// <summary>
+        /// Align transformation with origin's transformation and keep the offset to apply during the next frames. 
+        /// </summary>
+        public void Calibrate()
 		{
 			Calibration = Quaternion.Inverse(_lastValidLocalRotation);
 		}
@@ -304,14 +310,14 @@ namespace ViveTrackers
                 // 1) Rohrotation vom OpenVR-Tracker
                 Quaternion rawRotation = pLocalRotation;
 
-                // 2) Mounting-Korrektur (Tracker ist z.B. seitlich gekippt)
+                // 2) Mounting-Korrektur (Tracker schief montiert)
                 Quaternion correctedRotation = rawRotation * _mountingOffset;
 
                 // 3) Für Calibrate() merken wir uns die KORRIGIERTE Rotation
                 _lastValidLocalRotation = correctedRotation;
 
-                // 4) Rotation inkl. Kalibrierung berechnen
-                Quaternion finalRotation = correctedRotation * _calibration;
+                // 4) Rotation inkl. Kalibrierung UND Head-Offset berechnen
+                Quaternion finalRotation = correctedRotation * _calibration * _headOffset;
 
                 // 5) Debug: Achsen rotationweise sperren
                 if (lockXRotation || lockYRotation || lockZRotation)
@@ -328,6 +334,7 @@ namespace ViveTrackers
                 // 6) Ergebnis anwenden
                 _transform.localRotation = finalRotation;
             }
+
 
         }
 
