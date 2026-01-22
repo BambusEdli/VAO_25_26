@@ -1416,7 +1416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b2118994187aff48b63c892dfdc3782, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  rotationOffsetEuler: {x: 90, y: 0, z: 0}
+  rotationOffsetEuler: {x: 90, y: 90, z: 0}
 --- !u!1001 &1803209403
 PrefabInstance:
   m_ObjectHideFlags: 0
