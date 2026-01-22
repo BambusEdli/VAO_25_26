@@ -59,9 +59,13 @@ namespace ViveTrackers
         public Vector3 headOffsetEuler = Vector3.zero;
         private Quaternion _headOffset = Quaternion.identity;
 
+<<<<<<< HEAD
         [Header("Rotation Debug Locks")]
         [Tooltip("Wenn true, wird Rotation um die lokale X-Achse (Pitch) unterdrückt.")]
         public bool lockXRotation = false;
+=======
+        // ... danach kommen deine Properties (ID, IsConnected, etc.)
+>>>>>>> parent of 1ea7319 (Tracking fixing_progress7)
 
         [Tooltip("Wenn true, wird Rotation um die lokale Y-Achse (Yaw) unterdrückt.")]
         public bool lockYRotation = false;
@@ -310,6 +314,7 @@ namespace ViveTrackers
                 // 1) Rohrotation vom OpenVR-Tracker
                 Quaternion rawRotation = pLocalRotation;
 
+<<<<<<< HEAD
                 // 2) Mounting-Korrektur (Tracker schief montiert)
                 Quaternion correctedRotation = rawRotation * _mountingOffset;
 
@@ -336,6 +341,21 @@ namespace ViveTrackers
             }
 
 
+=======
+                // 2) Mounting-Korrektur: Tracker ist physisch schief montiert
+                Quaternion correctedRotation = rawRotation * _mountingOffset;
+
+                // 3) _lastValidLocalRotation wird NACH Mount-Korrektur gemerkt
+                //    (wichtig für Calibrate(), damit die Kalibrierung auf der "richtigen" Achse arbeitet)
+                _lastValidLocalRotation = correctedRotation;
+
+                // 4) Finale Rotation:
+                //    - correctedRotation  : Hardware + Mount-Korrektur
+                //    - _calibration       : Kalibrierung (F8 etc.)
+                //    - _headOffset        : zusätzliches Head-Offset wie früher im HeadRotation-Script
+                _transform.localRotation = correctedRotation * _calibration * _headOffset;
+            }
+>>>>>>> parent of 1ea7319 (Tracking fixing_progress7)
         }
 
         /// <summary>
