@@ -34,25 +34,33 @@ namespace ViveTrackers
 		}
 	}
 
-	/// <summary>
-	/// Represents a HTC ViveTracker object.
-	/// </summary>
-	public sealed class ViveTracker : MonoBehaviour
-	{
-		public const float ImuOnlyMinDuration = 0.033f; // = 2 frames @60Hz
-		public const float ImuOnlyMaxDuration = 2f;
+    /// <summary>
+    /// Represents a HTC ViveTracker object.
+    /// </summary>
+    public sealed class ViveTracker : MonoBehaviour
+    {
+        public const float ImuOnlyMinDuration = 0.033f; // = 2 frames @60Hz
+        public const float ImuOnlyMaxDuration = 2f;
 
-		[Range(ImuOnlyMinDuration, ImuOnlyMaxDuration)]
-		[Tooltip("The duration a tracker's position can be considered as reliably tracked with IMU tracking only (no optical tracking). Use min value for data analysis purpose, and up to max value for gameplay purpose.")]
-		public float imuOnlyReliablePositionDuration = ImuOnlyMinDuration;
-		public DebugTransform debugTransform;
+        [Range(ImuOnlyMinDuration, ImuOnlyMaxDuration)]
+        [Tooltip("The duration a tracker's position can be considered 'reliable' when only IMU data is available.")]
+        public float imuOnlyReliablePositionDuration = ImuOnlyMinDuration;
+
+        public DebugTransform debugTransform;
 
         [Header("Mount offset (physical tracker mounting)")]
         [Tooltip("Rotation from tracker axes to desired object/head axes (in degrees). " +
-         "Use this if the tracker is mounted sideways or tilted.")]
+                 "Use this if the tracker is mounted sideways or tilted.")]
         public Vector3 mountingOffsetEuler = Vector3.zero;
-
         private Quaternion _mountingOffset = Quaternion.identity;
+
+        [Header("Head orientation offset (like old HeadRotation)")]
+        [Tooltip("Additional rotation offset (in degrees) applied after calibration, " +
+                 "to align the 'forward' direction of the head/camera with your experiment.")]
+        public Vector3 headOffsetEuler = Vector3.zero;
+        private Quaternion _headOffset = Quaternion.identity;
+
+        // ... danach kommen deine Properties (ID, IsConnected, etc.)
 
 
         private void RecomputeMountingOffset()
@@ -62,8 +70,16 @@ namespace ViveTrackers
 
         private void OnValidate()
         {
+            RecomputeOffsets();
             RecomputeMountingOffset();
         }
+
+        private void RecomputeOffsets()
+        {
+            _mountingOffset = Quaternion.Euler(mountingOffsetEuler);
+            _headOffset = Quaternion.Euler(headOffsetEuler);
+        }
+
 
 
         #region Properties
@@ -254,6 +270,7 @@ namespace ViveTrackers
 			name = pName;
 
             RecomputeMountingOffset();
+            RecomputeOffsets();
         }
 
 		/// <summary>
@@ -292,16 +309,19 @@ namespace ViveTrackers
                 // 1) Rohrotation vom OpenVR-Tracker
                 Quaternion rawRotation = pLocalRotation;
 
-                // 2) Mounting-Korrektur (Tracker ist z.B. seitlich gekippt)
+                // 2) Mounting-Korrektur: Tracker ist physisch schief montiert
                 Quaternion correctedRotation = rawRotation * _mountingOffset;
 
-                // 3) Für Calibrate() merken wir uns die KORRIGIERTE Rotation
+                // 3) _lastValidLocalRotation wird NACH Mount-Korrektur gemerkt
+                //    (wichtig für Calibrate(), damit die Kalibrierung auf der "richtigen" Achse arbeitet)
                 _lastValidLocalRotation = correctedRotation;
 
-                // 4) Rotation inkl. Kalibrierung in den Transform schreiben
-                _transform.localRotation = correctedRotation * _calibration;
+                // 4) Finale Rotation:
+                //    - correctedRotation  : Hardware + Mount-Korrektur
+                //    - _calibration       : Kalibrierung (F8 etc.)
+                //    - _headOffset        : zusätzliches Head-Offset wie früher im HeadRotation-Script
+                _transform.localRotation = correctedRotation * _calibration * _headOffset;
             }
-
         }
 
         /// <summary>
