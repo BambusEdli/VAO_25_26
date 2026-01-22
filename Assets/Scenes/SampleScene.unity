@@ -1109,8 +1109,8 @@ MonoBehaviour:
   gazeTransform: {fileID: 788112422}
   experiment: {fileID: 1032955940}
   simulatedStimulusDuration: 2
-  maxAllowedHeadDeviation: 20
-  subjectId: S01
+  maxAllowedHeadDeviation: 7
+  subjectId: S02
   logUnderAssetsFolder: 1
 --- !u!114 &1108434253 stripped
 MonoBehaviour:
@@ -1403,7 +1403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1623653222}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4b8f8479fbaeff41a0a8282419d59d9, type: 3}
   m_Name: 
