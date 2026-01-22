@@ -43,7 +43,7 @@ namespace ViveTrackers
         public const float ImuOnlyMaxDuration = 2f;
 
         [Range(ImuOnlyMinDuration, ImuOnlyMaxDuration)]
-        [Tooltip("The duration a tracker's position can be considered 'reliable' when only IMU data is available.")]
+        [Tooltip("The duration a tracker's position can be considered 'reliable' when only IMU data is available, for analysis purpose, and up to max value for gameplay purpose.")]
         public float imuOnlyReliablePositionDuration = ImuOnlyMinDuration;
 
         public DebugTransform debugTransform;
@@ -52,16 +52,18 @@ namespace ViveTrackers
         [Tooltip("Rotation from tracker axes to desired object/head axes (in degrees). " +
                  "Use this if the tracker is mounted sideways or tilted.")]
         public Vector3 mountingOffsetEuler = Vector3.zero;
+
         private Quaternion _mountingOffset = Quaternion.identity;
 
-        [Header("Head orientation offset (like old HeadRotation)")]
-        [Tooltip("Additional rotation offset (in degrees) applied after calibration, " +
-                 "to align the 'forward' direction of the head/camera with your experiment.")]
-        public Vector3 headOffsetEuler = Vector3.zero;
-        private Quaternion _headOffset = Quaternion.identity;
+        [Header("Rotation Debug Locks")]
+        [Tooltip("Wenn true, wird Rotation um die lokale X-Achse (Pitch) unterdrückt.")]
+        public bool lockXRotation = false;
 
-        // ... danach kommen deine Properties (ID, IsConnected, etc.)
+        [Tooltip("Wenn true, wird Rotation um die lokale Y-Achse (Yaw) unterdrückt.")]
+        public bool lockYRotation = false;
 
+        [Tooltip("Wenn true, wird Rotation um die lokale Z-Achse (Roll) unterdrückt.")]
+        public bool lockZRotation = false;
 
         private void RecomputeMountingOffset()
         {
@@ -70,9 +72,11 @@ namespace ViveTrackers
 
         private void OnValidate()
         {
-            RecomputeOffsets();
             RecomputeMountingOffset();
         }
+
+        // ... Rest der Klasse
+
 
         private void RecomputeOffsets()
         {
@@ -309,19 +313,31 @@ namespace ViveTrackers
                 // 1) Rohrotation vom OpenVR-Tracker
                 Quaternion rawRotation = pLocalRotation;
 
-                // 2) Mounting-Korrektur: Tracker ist physisch schief montiert
+                // 2) Mounting-Korrektur (Tracker ist z.B. seitlich gekippt)
                 Quaternion correctedRotation = rawRotation * _mountingOffset;
 
-                // 3) _lastValidLocalRotation wird NACH Mount-Korrektur gemerkt
-                //    (wichtig für Calibrate(), damit die Kalibrierung auf der "richtigen" Achse arbeitet)
+                // 3) Für Calibrate() merken wir uns die KORRIGIERTE Rotation
                 _lastValidLocalRotation = correctedRotation;
 
-                // 4) Finale Rotation:
-                //    - correctedRotation  : Hardware + Mount-Korrektur
-                //    - _calibration       : Kalibrierung (F8 etc.)
-                //    - _headOffset        : zusätzliches Head-Offset wie früher im HeadRotation-Script
-                _transform.localRotation = correctedRotation * _calibration * _headOffset;
+                // 4) Rotation inkl. Kalibrierung berechnen
+                Quaternion finalRotation = correctedRotation * _calibration;
+
+                // 5) Debug: Achsen rotationweise sperren
+                if (lockXRotation || lockYRotation || lockZRotation)
+                {
+                    Vector3 euler = finalRotation.eulerAngles; // Unity-Euler in Grad
+
+                    if (lockXRotation) euler.x = 0f;
+                    if (lockYRotation) euler.y = 0f;
+                    if (lockZRotation) euler.z = 0f;
+
+                    finalRotation = Quaternion.Euler(euler);
+                }
+
+                // 6) Ergebnis anwenden
+                _transform.localRotation = finalRotation;
             }
+
         }
 
         /// <summary>
