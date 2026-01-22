@@ -14,6 +14,9 @@ public class GazeVisualizer : MonoBehaviour
 
     private LineRenderer line;
 
+    [Tooltip("ExperimentController, von dem die bereinigte Blickrichtung bezogen wird (optional).")]
+    public ExperimentController experiment;
+
     private void Awake()
     {
         line = GetComponent<LineRenderer>();
@@ -22,16 +25,35 @@ public class GazeVisualizer : MonoBehaviour
 
     private void Update()
     {
+        if (line == null)
+        {
+            return;
+        }
+
+        // Wenn ein ExperimentController gesetzt ist, nutzen wir dessen Gaze-Definition
+        if (experiment != null)
+        {
+            Vector3 start = experiment.GetGazePosition();
+            Vector3 dir = experiment.GetGazeDirection();
+            Vector3 end = start + dir * gazeLength;
+
+            line.SetPosition(0, start);
+            line.SetPosition(1, end);
+            return;
+        }
+
+        // Fallback: direkt head.forward
         if (head == null)
         {
             return;
         }
 
-        Vector3 start = head.position;
-        Vector3 end = start + head.forward * gazeLength;
+        Vector3 s = head.position;
+        Vector3 e = s + head.forward * gazeLength;
 
-        line.SetPosition(0, start);
-        line.SetPosition(1, end);
+        line.SetPosition(0, s);
+        line.SetPosition(1, e);
     }
+
 }
 
