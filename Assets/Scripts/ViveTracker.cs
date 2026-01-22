@@ -47,8 +47,27 @@ namespace ViveTrackers
 		public float imuOnlyReliablePositionDuration = ImuOnlyMinDuration;
 		public DebugTransform debugTransform;
 
-		#region Properties
-		public ViveTrackerID ID { get; private set; }
+        [Header("Mount offset (physical tracker mounting)")]
+        [Tooltip("Rotation from tracker axes to desired object/head axes (in degrees). " +
+         "Use this if the tracker is mounted sideways or tilted.")]
+        public Vector3 mountingOffsetEuler = Vector3.zero;
+
+        private Quaternion _mountingOffset = Quaternion.identity;
+
+
+        private void RecomputeMountingOffset()
+        {
+            _mountingOffset = Quaternion.Euler(mountingOffsetEuler);
+        }
+
+        private void OnValidate()
+        {
+            RecomputeMountingOffset();
+        }
+
+
+        #region Properties
+        public ViveTrackerID ID { get; private set; }
 		
 		public bool IsConnected 
 		{ 
@@ -233,7 +252,9 @@ namespace ViveTrackers
 			_packetNum = 0u;
 			ID = pID;
 			name = pName;
-		}
+
+            RecomputeMountingOffset();
+        }
 
 		/// <summary>
 		/// Align transformation with origin's transformation and keep the offset to apply during the next frames. 
@@ -265,24 +286,34 @@ namespace ViveTrackers
 			{
 				_transform.localPosition = pLocalPosition;
 			}
-			// ROTATION
-			if(isRotValid)
-			{
-				_lastValidLocalRotation = pLocalRotation;
-				_transform.localRotation = pLocalRotation * _calibration;
-			}
-		}
+            // ROTATION
+            if (isRotValid)
+            {
+                // 1) Rohrotation vom OpenVR-Tracker
+                Quaternion rawRotation = pLocalRotation;
 
-		/// <summary>
-		/// Update ViveTracker Buttons (Pogo Pins).
-		/// 2 – Ground
-		/// 3 – Grip
-		/// 4 – Trigger
-		/// 5 – Touchpad
-		/// 6 – Menu Button
-		/// https://dl.vive.com/Tracker/Guideline/HTC%20Vive%20Tracker%20(3.0)%20Developer%20Guidelines_v1.0_01182021.pdf
-		/// </summary>
-		public void UpdateButtons(uint pPacketNum, ulong pButtonsState)
+                // 2) Mounting-Korrektur (Tracker ist z.B. seitlich gekippt)
+                Quaternion correctedRotation = rawRotation * _mountingOffset;
+
+                // 3) Für Calibrate() merken wir uns die KORRIGIERTE Rotation
+                _lastValidLocalRotation = correctedRotation;
+
+                // 4) Rotation inkl. Kalibrierung in den Transform schreiben
+                _transform.localRotation = correctedRotation * _calibration;
+            }
+
+        }
+
+        /// <summary>
+        /// Update ViveTracker Buttons (Pogo Pins).
+        /// 2 – Ground
+        /// 3 – Grip
+        /// 4 – Trigger
+        /// 5 – Touchpad
+        /// 6 – Menu Button
+        /// https://dl.vive.com/Tracker/Guideline/HTC%20Vive%20Tracker%20(3.0)%20Developer%20Guidelines_v1.0_01182021.pdf
+        /// </summary>
+        public void UpdateButtons(uint pPacketNum, ulong pButtonsState)
 		{
 			//Debug.Log("[ViveTracker.UpdateButtons()] PacketNum : " + pPacketNum);
 			//Debug.Log("[ViveTracker.UpdateButtons()] ButtonsState : " + pButtonsState);
