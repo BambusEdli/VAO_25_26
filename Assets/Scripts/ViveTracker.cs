@@ -75,14 +75,6 @@ namespace ViveTrackers
             RecomputeMountingOffset();
         }
 
-        // ... Rest der Klasse
-
-
-        private void RecomputeOffsets()
-        {
-            _mountingOffset = Quaternion.Euler(mountingOffsetEuler);
-            _headOffset = Quaternion.Euler(headOffsetEuler);
-        }
 
 
 
@@ -274,7 +266,6 @@ namespace ViveTrackers
 			name = pName;
 
             RecomputeMountingOffset();
-            RecomputeOffsets();
         }
 
 		/// <summary>
