@@ -37,16 +37,14 @@ public class ReaperOscSender : MonoBehaviour
     }
 
     /// <summary>
-    /// Setzt das Routing für eine Kombination aus Signal und Repräsentation:
-    ///  - genau ein Signal-Track (1=Voice, 2=Noise, 3=Music)
-    ///  - genau ein Bus-Track (4=HOA3, 5=HOA4, 6=Binaural)
+    /// Sets the routing for a combination of signal and representation:
+    /// exactly one signal track (1 = Voice, 2 = Noise, 3 = Music)
+    /// exactly one bus track (4 = HOA3, 5 = HOA4, 6 = Binaural)
     /// </summary>
     public void ConfigureRouting(SignalType signal, RepresentationType representation)
     {
-        // Alles zunächst muten
         SetAllTracksMute(true);
 
-        // Signal-Track bestimmen
         int signalTrack = 1;
         switch (signal)
         {
@@ -61,7 +59,6 @@ public class ReaperOscSender : MonoBehaviour
                 break;
         }
 
-        // Repräsentations-Track bestimmen
         int repTrack = 4;
         switch (representation)
         {
@@ -76,29 +73,19 @@ public class ReaperOscSender : MonoBehaviour
                 break;
         }
 
-        // Nur diese beiden unmute
         SetTrackMute(signalTrack, false);
         SetTrackMute(repTrack, false);
 
-        Debug.Log($"ReaperOscSender: Routing gesetzt -> Signal {signal} (Track {signalTrack}), " +
+        Debug.Log($"ReaperOscSender: Routing set -> Signal {signal} (Track {signalTrack}), " +
                   $"Rep {representation} (Track {repTrack})");
     }
 
-    /// <summary>
-    /// Führt den gesamten Ablauf aus:
-    /// - Routing setzen
-    /// - zum Start springen
-    /// - Play
-    /// - nach 'durationSec' wieder Stop
-    /// </summary>
     public void PlayStimulus(SignalType signal,
                              RepresentationType representation,
                              float durationSec)
     {
         StartCoroutine(PlayStimulusRoutine(signal, representation, durationSec));
     }
-
-    // ----------------- Bisherige Basisfunktionen -----------------
 
     public void TogglePlay()
     {
@@ -122,7 +109,6 @@ public class ReaperOscSender : MonoBehaviour
         _transmitter.Send(msg);
     }
 
-    // Generische Mute-Funktion
     public void SetTrackMute(int trackIndex, bool mute)
     {
         if (_transmitter == null) return;
@@ -139,28 +125,16 @@ public class ReaperOscSender : MonoBehaviour
         }
     }
 
-    // ----------------- Interne Coroutine -----------------
-
-    private IEnumerator PlayStimulusRoutine(SignalType signal,
-                                            RepresentationType representation,
-                                            float durationSec)
+    private IEnumerator PlayStimulusRoutine(SignalType signal, RepresentationType representation, float durationSec)
     {
-        // Schritt 1: Routing setzen (entspricht den Mute/Unmute-Blöcken in der PDF)
         ConfigureRouting(signal, representation);
 
-        // Schritt 2: (optional) Source-Position per OSC schicken
-        // -> hier könnt ihr später "Move Source for OSC" einhängen
-
-        // Schritt 3: an den Anfang springen
         JumpToStart();
 
-        // Schritt 4: Play
         TogglePlay();
 
-        // Schritt 5: Warten (Stimulusdauer)
         yield return new WaitForSeconds(durationSec);
 
-        // Schritt 6: Stop
         ToggleStop();
     }
 }

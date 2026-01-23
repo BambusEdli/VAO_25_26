@@ -3,10 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Verantwortlich für das Platzieren der Zielquelle auf der Sphäre
-/// und das Berechnen des Winkelfehlers zwischen Kopf-Forward und Quelle.
-/// </summary>
+
 public class ExperimentController : MonoBehaviour
 {
     [Header("Referenzen")]
@@ -41,12 +38,10 @@ public class ExperimentController : MonoBehaviour
     public ReaperOscSender reaperOscSender;
 
 
+    // Configures the routing in REAPER for the current trial:
+    // one signal track active (1=Voice, 2=Tone/Noise, 3=Music)
+    // one representation track active (4=HOA3, 5=HOA4, 6=Binaural)
 
-    /// <summary>
-    /// Konfiguriert das Routing in REAPER für das aktuelle Trial:
-    /// - genau ein Signaltrack aktiv (1=Voice, 2=Tone/Noise, 3=Music)
-    /// - genau ein Repräsentations-Track aktiv (4=HOA3, 5=HOA4, 6=Binaural)
-    /// </summary>
     private void ConfigureReaperRoutingForCurrentTrial()
     {
         if (reaperOscSender == null || currentTrial == null)
@@ -54,14 +49,14 @@ public class ExperimentController : MonoBehaviour
             return;
         }
 
-        // 1) Experiment-Signaltyp auf Reaper-Signaltyp abbilden
+        // 1: Experiment signal type -> Reaper track
         ReaperOscSender.SignalType reaperSignalType;
         switch (currentTrial.signalType)
         {
             case SignalType.Voice:
                 reaperSignalType = ReaperOscSender.SignalType.Voice;
                 break;
-            case SignalType.Tone:   // dein Noise/Tone-Track -> Reaper "Noise"
+            case SignalType.Tone:
                 reaperSignalType = ReaperOscSender.SignalType.Noise;
                 break;
             case SignalType.Music:
@@ -72,7 +67,7 @@ public class ExperimentController : MonoBehaviour
                 break;
         }
 
-        // 2) Experiment-Repräsentation auf Reaper-Repräsentation abbilden
+        // 2: Experiment representation -> Reaper track
         ReaperOscSender.RepresentationType reaperRepType;
         switch (currentTrial.representation)
         {
@@ -88,7 +83,7 @@ public class ExperimentController : MonoBehaviour
                 break;
         }
 
-        // 3) Routing in Reaper setzen (Mute/Unmute aller Tracks)
+        // 3: setting routing in Reaper (mute/unmute all tracks)
         reaperOscSender.ConfigureRouting(reaperSignalType, reaperRepType);
 
         Debug.Log(
@@ -97,15 +92,11 @@ public class ExperimentController : MonoBehaviour
         );
     }
 
+    // Starts stimulus in Reaper for current trial
 
-    /// <summary>
-    /// Startet für das aktuelle Trial den Stimulus in Reaper
-    /// (Routing setzen, JumpToStart, Play, nach Dauer Stop).
-    /// Optional: zusätzlich Unity-Audio abspielen.
-    /// </summary>
     public void StartStimulusForCurrentTrial(float durationSeconds)
     {
-        // Optional: lokale Audioquelle parallel spielen lassen (zum Debuggen)
+        // Optional for debugging
         PlayCurrentSourceAudio();
 
         if (reaperOscSender == null)
@@ -125,27 +116,20 @@ public class ExperimentController : MonoBehaviour
 
     private IEnumerator ReaperStimulusRoutine(float durationSeconds)
     {
-        // 1) Routing je nach aktuellem Trial setzen
+        // Set routing based on current trial
         ConfigureReaperRoutingForCurrentTrial();
 
-        // 2) TODO: hier später 'Move Source for OSC' ergänzen, wenn Adresse klar ist
-
-        // 3) An den Anfang der Timeline springen
+        // Jump to start of timeline
         reaperOscSender.JumpToStart();
 
-        // 4) Play
         reaperOscSender.TogglePlay();
 
-        // 5) Warten (Stimulusdauer)
         yield return new WaitForSeconds(durationSeconds);
 
-        // 6) Stop
         reaperOscSender.ToggleStop();
     }
 
 
-
-    // ---------- Faktorielles Design ----------
 
     public enum RepresentationType
     {
@@ -164,10 +148,10 @@ public class ExperimentController : MonoBehaviour
     [Serializable]
     public class TrialDefinition
     {
-        public int trialIndex;                // 0-basiert intern, Logging kann +1 nehmen
+        public int trialIndex;
         public RepresentationType representation;
         public SignalType signalType;
-        public int quadrantIndex;            // 0..3 (0: 0–90, 1: 90–180, 2: 180–270, 3: 270–360)
+        public int quadrantIndex; // 0..3 (0: 0–90, 1: 90–180, 2: 180–270, 3: 270–360)
         public float targetAzimuthDeg;
         public float targetElevationDeg;
     }
@@ -177,21 +161,16 @@ public class ExperimentController : MonoBehaviour
     private TrialDefinition currentTrial;
     private bool experimentFinished = false;
 
-    // ---------- Platzierung & Geometrie ----------
-
-    /// <summary>
-    /// Platziert/aktualisiert den Quellmarker basierend auf Azimut/Elevation.
-    /// </summary>
+    // Places/updates source marker based on azimuth/elevation
     public void PlaceTarget(float azimuthDeg, float elevationDeg)
     {
         if (sourceMarkerPrefab == null)
         {
-            Debug.LogError("ExperimentController: sourceMarkerPrefab ist nicht gesetzt " +
-                           "(sollte jetzt auf das SoundSource-Objekt in der Szene zeigen).");
+            Debug.LogError("ExperimentController: sourceMarkerPrefab is not assigned " +
+                           "(should point to the SoundSource object in the scene).");
             return;
         }
 
-        // Wir benutzen das bereits in der Szene vorhandene Objekt als aktuellen Marker
         if (currentSourceMarker == null)
         {
             currentSourceMarker = sourceMarkerPrefab;
@@ -200,17 +179,14 @@ public class ExperimentController : MonoBehaviour
         Vector3 dir = SphericalCoords.DirectionFromAzEl(azimuthDeg, elevationDeg);
         currentSourceMarker.transform.position = dir * sphereRadius;
 
-        // Asio-Quelle an die gleiche Position wie den visuellen Marker setzen
+        // Move ASIO source to same position as visual marker
         if (asioSourceTransform != null)
         {
             asioSourceTransform.position = currentSourceMarker.transform.position;
         }
     }
 
-    /// <summary>
-    /// Liefert die aktuelle Blickrichtung im Weltkoordinatensystem.
-    /// Wenn gazeTransform gesetzt ist, wird dessen forward genutzt, sonst head.forward.
-    /// </summary>
+    // Returns the current gaze direction in world coordinates
     public Vector3 GetGazeDirection()
     {
         Transform t = gazeTransform != null ? gazeTransform : head;
@@ -218,10 +194,7 @@ public class ExperimentController : MonoBehaviour
         return t.forward;
     }
 
-    /// <summary>
-    /// Liefert die Position, von der aus wir den Winkel zur Quelle berechnen.
-    /// Wenn gazeTransform gesetzt ist, wird dessen Position genutzt, sonst head.position.
-    /// </summary>
+    // Returns position from which the angle to the source is computed
     public Vector3 GetGazePosition()
     {
         Transform t = gazeTransform != null ? gazeTransform : head;
@@ -231,14 +204,12 @@ public class ExperimentController : MonoBehaviour
 
 
 
-    /// <summary>
-    /// Berechnet den Winkel zwischen Kopf-Vorwärtsrichtung und Quelle in Grad.
-    /// </summary>
+    // Computes angle between head forward direction and source in degrees
     public float ComputeAngularError()
     {
         if (currentSourceMarker == null || (head == null && gazeTransform == null))
         {
-            Debug.LogWarning("ExperimentController: head/gazeTransform oder currentSourceMarker fehlt.");
+            Debug.LogWarning("ExperimentController: head/gazeTransform or currentSourceMarker is missing.");
             return 0f;
         }
 
@@ -251,9 +222,7 @@ public class ExperimentController : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// Gibt den aktuellen Richtungsvektor zur Quelle zurück (normalisiert), falls benötigt.
-    /// </summary>
+    // Returns current direction vector to the source (normalized) if needed
     public Vector3 GetSourceDirection()
     {
         if (currentSourceMarker == null)
@@ -267,32 +236,32 @@ public class ExperimentController : MonoBehaviour
 
 
     /// <summary>
-    /// Spielt den Sound der aktuellen Quelle ab:
-    /// - Unity-AudioSource auf dem Marker (falls vorhanden)
-    /// - Asio-Quelle in der Szene (falls vorhanden)
+    /// Plays the sound of the current source:
+    /// Unity AudioSource on the marker (if present)
+    /// ASIO source in the scene (if present)
     /// </summary>
     public void PlayCurrentSourceAudio()
     {
         if (currentSourceMarker == null && asioSourceTransform == null)
         {
-            Debug.LogWarning("ExperimentController: Keine Quelle zum Abspielen vorhanden.");
+            Debug.LogWarning("ExperimentController: No source available to play.");
             return;
         }
 
-        // Unity-AudioSource auf dem Marker (z.B. Test-Clip/Kopfhörer)
+        // Unity AudioSource on the marker
         if (currentSourceMarker != null)
         {
             currentSourceMarker.SendMessage("Play", SendMessageOptions.DontRequireReceiver);
         }
 
-        // Persistente Asio-Quelle
+        // Persistent ASIO source
         if (asioSourceTransform != null)
         {
             asioSourceTransform.gameObject.SendMessage("Play", SendMessageOptions.DontRequireReceiver);
         }
     }
 
-    // ---------- Trial-Design & -Verwaltung ----------
+    // Trial Design & Management
 
     private void Awake()
     {
@@ -301,24 +270,21 @@ public class ExperimentController : MonoBehaviour
 
     private void Start()
     {
-        // Erstes Trial vorbereiten
         AdvanceToNextTrial();
     }
 
-    /// <summary>
-    /// Gibt an, ob das Experiment (alle Trials) bereits abgeschlossen ist.
-    /// </summary>
+    // Indicates whether the experiment (all trials) has already finished
     public bool IsExperimentFinished
     {
         get { return experimentFinished; }
     }
 
     /// <summary>
-    /// Erzeugt eine Trial-Liste mit:
-    /// - 3 Repräsentationen x 3 Signaltypen = 9 Kombinationen
-    /// - Jede Kombination gleich oft in 4 Quadranten = 36 Trials
-    /// - Azimut pro Quadrant zufällig innerhalb des Quadranten
-    /// - Elevation zunächst 0° oder 30° zufällig (noch nicht gebalanced)
+    /// Generates a trial list with:
+    /// 3 representations x 3 signal types = 9 combinations
+    /// Each combination equally often in 4 quadrants = 36 trials
+    /// Azimuth per quadrant randomized within the quadrant
+    /// Elevation randomized within the inspector-defined range
     /// </summary>
     private void GenerateBalancedTrials()
     {
@@ -339,7 +305,6 @@ public class ExperimentController : MonoBehaviour
 
                     float az = UnityEngine.Random.Range(minAz, maxAz);
 
-                    // Elevation aus dem im Inspector gesetzten Bereich
                     float el;
                     if (maxElevationDeg > minElevationDeg)
                     {
@@ -347,7 +312,7 @@ public class ExperimentController : MonoBehaviour
                     }
                     else
                     {
-                        // Fallback: falls jemand min/max vertauscht, nimm einfach minElevationDeg
+                        // Fallback: if min/max are swapped, just use minElevationDeg
                         el = minElevationDeg;
                     }
 
@@ -368,7 +333,7 @@ public class ExperimentController : MonoBehaviour
             }
         }
 
-        // Shuffle der Trials, damit Reihenfolge randomisiert ist
+        // Shuffle trials so the order is randomized
         for (int i = 0; i < trials.Count; i++)
         {
             int j = UnityEngine.Random.Range(i, trials.Count);
@@ -381,18 +346,15 @@ public class ExperimentController : MonoBehaviour
         currentTrial = null;
         experimentFinished = false;
 
-        Debug.Log($"ExperimentController: {trials.Count} Trials generiert (9 Kombinationen x 4 Quadranten).");
+        Debug.Log($"ExperimentController: {trials.Count} trials generated (9 combinations x 4 quadrants).");
     }
 
-    /// <summary>
-    /// Springt auf das nächste Trial, platziert die Quelle entsprechend
-    /// und gibt zurück, ob ein weiteres Trial existiert.
-    /// </summary>
+    // Advances to next trial, places source accordingly, returns whether another trial exists
     public bool AdvanceToNextTrial()
     {
         if (trials == null || trials.Count == 0)
         {
-            Debug.LogWarning("ExperimentController: Keine Trials definiert.");
+            Debug.LogWarning("ExperimentController: No trials defined.");
             experimentFinished = true;
             currentTrial = null;
             return false;
@@ -402,7 +364,7 @@ public class ExperimentController : MonoBehaviour
 
         if (currentTrialIndex >= trials.Count)
         {
-            Debug.Log("ExperimentController: Alle Trials wurden durchgeführt. Experiment ist beendet.");
+            Debug.Log("ExperimentController: All trials have been performed. Experiment is finished.");
             experimentFinished = true;
             currentTrial = null;
             return false;
@@ -422,7 +384,7 @@ public class ExperimentController : MonoBehaviour
         return true;
     }
 
-    // ---------- Getter für Logging ----------
+    // Getters for Logging
 
     public int GetCurrentTrialNumber()
     {

@@ -1,8 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// Zeichnet einen "Laser" in Blickrichtung des Kopfes mit einem LineRenderer.
-/// </summary>
+/// Zeichnet Laser in Blickrichtung des Kopfes mit einem LineRenderer
+
 [RequireComponent(typeof(LineRenderer))]
 public class GazeVisualizer : MonoBehaviour
 {
@@ -30,7 +29,7 @@ public class GazeVisualizer : MonoBehaviour
             return;
         }
 
-        // Wenn ein ExperimentController gesetzt ist, nutzen wir dessen Gaze-Definition
+        // Wenn ein ExperimentController gesetzt ist: dessenGaze-Definition nutzen
         if (experiment != null)
         {
             Vector3 start = experiment.GetGazePosition();

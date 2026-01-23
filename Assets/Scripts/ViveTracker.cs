@@ -60,8 +60,6 @@ namespace ViveTrackers
         public Vector3 headOffsetEuler = Vector3.zero;
         private Quaternion _headOffset = Quaternion.identity;
 
-        // ... danach kommen deine Properties (ID, IsConnected, etc.)
-
 
         private void RecomputeMountingOffset()
         {

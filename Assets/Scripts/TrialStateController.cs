@@ -2,40 +2,40 @@ using System.IO;
 using UnityEngine;
 
 /// <summary>
-/// Bedienung:
-/// - SPACE (1. Druck): Baseline loggen + Stimulus starten (Schritt 1 & 2 zusammen)
-/// - SPACE (nach Stimulus-Ende): Antwort loggen (Schritt 3)
+/// Instructions:
+/// - SPACE (1. press): Baseline logged + started stimulus
+/// - SPACE (2. press, after end of stimulus): log answer + advance to next trial
 /// 
-/// Zusätzlich:
-/// - Kopfbewegungs-Tracking während der Hörphase
-/// - CSV-Export
-/// - Fehlerausgabe: Gesamtwinkel + Azimut-/Elevationsfehler
+/// Additional:
+/// - Tracks head movement during stimulus phase
+/// - CSV-export
+/// - Error output: absolute angle + azimuth/elevation components
 /// </summary>
 public class TrialStateController : MonoBehaviour
 {
-    [Header("Referenzen")]
-    [Tooltip("Head-Transform (Tracker-/Rig-Transform). Wird für Still-Sitzen (Quaternion.Angle) verwendet.")]
+    [Header("References")]
+    [Tooltip("Head-Transform (Tracker-/Rig-Transform). Used for still sitting (Quaternion.Angle).")]
     public Transform head;
 
-    [Tooltip("Optional: Transform, dessen forward als Blickrichtung verwendet wird (z.B. die Kamera). Wenn leer, wird head.forward verwendet.")]
+    [Tooltip("Optional: Forward of Transform used as gaze direction (camera). If null head.forward is used.")]
     public Transform gazeTransform;
 
-    [Tooltip("Controller für Quelle, Trial-Design und Fehlerberechnung")]
+    [Tooltip("Controller for source, trial design and error calculation")]
     public ExperimentController experiment;
 
     [Header("Stimulus")]
-    [Tooltip("Dauer des Stimulus in Sekunden (für Timing/Antwortzeit)")]
+    [Tooltip("Duration of stimulus in seconds (for timing/response time).")]
     public float simulatedStimulusDuration = 2.0f;
 
     [Header("Head-Movement-Constraint")]
-    [Tooltip("Maximale erlaubte Abweichung vom Baseline-Heading in Grad während der Hörphase")]
+    [Tooltip("Maximum allowed deviation from baseline heading in degrees during stimulus phase.")]
     public float maxAllowedHeadDeviation = 25f;
 
     [Header("Logging")]
-    [Tooltip("ID der Versuchsperson (für CSV-Log, z.B. S01, VP03)")]
+    [Tooltip("ID of the subject (for CSV log, e.g., 'S01', 'S02').")]
     public string subjectId = "S01";
 
-    [Tooltip("Wenn true: Logs nach Assets/ExperimentLogs, sonst in persistentDataPath/ExperimentLogs.")]
+    [Tooltip("If true: Logs to Assets/ExperimentLogs, otherwise to persistentDataPath/ExperimentLogs.")]
     public bool logUnderAssetsFolder = false;
 
     private enum TrialState
@@ -48,17 +48,17 @@ public class TrialStateController : MonoBehaviour
     private TrialState state = TrialState.Idle;
 
     private Quaternion baselineRotation;
-    private float stimulusOffsetTime; // Zeitpunkt, wenn Stimulus fertig ist
+    private float stimulusOffsetTime;
     private bool stimulusFinishedLogged = false;
 
-    // Baseline Az/El (für Yaw/Pitch-Abweichungen)
+    // Baseline az/el (for yaw/pitch deviations)
     private float baselineAzDeg = 0f;
     private float baselineElDeg = 0f;
 
-    // Movement Tracking pro Trial
-    private float maxHeadDeviationThisTrial = 0f;    // Gesamtwinkel
-    private float maxYawDeviationThisTrial = 0f;     // |ΔAz| zur Baseline
-    private float maxPitchDeviationThisTrial = 0f;   // |ΔEl| zur Baseline
+    // Movement tracking per Trial
+    private float maxHeadDeviationThisTrial = 0f;
+    private float maxYawDeviationThisTrial = 0f;
+    private float maxPitchDeviationThisTrial = 0f;
     private bool headDeviationExceededThisTrial = false;
 
     // Logging
@@ -71,12 +71,12 @@ public class TrialStateController : MonoBehaviour
 
     private void Update()
     {
-        // Experiment beendet?
+        // Experiment finished?
         if (experiment != null && experiment.IsExperimentFinished && state == TrialState.Idle)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                Debug.Log("TrialStateController: Experiment ist abgeschlossen. Keine weiteren Trials.");
+                Debug.Log("TrialStateController: Experiment is finished. No further trials.");
             }
             return;
         }
@@ -99,9 +99,9 @@ public class TrialStateController : MonoBehaviour
         return t.forward;
     }
 
-    // Konvention passend zu SphericalCoords:
-    // Azimut: 0° = +Z (vorne), +90° = +X (rechts), Bereich [-180, 180]
-    // Elevation: 0° = Horizont, +90° = oben
+    // Convention matching SphericalCoords:
+    // Azimuth: 0° = +Z (front), +90° = +X (right), range [-180, 180]
+    // Elevation: 0° = horizon, +90° = up
     private static void DirectionToAzEl(Vector3 dir, out float azDeg, out float elDeg)
     {
         if (dir.sqrMagnitude < 1e-8f)
@@ -131,7 +131,7 @@ public class TrialStateController : MonoBehaviour
                 break;
 
             case TrialState.StimulusPlaying:
-                // Falls der Stimulus bereits vorbei ist, aber UpdateStimulusState noch nicht umgeschaltet hat:
+                // // If the stimulus is already over but UpdateStimulusState hasnt switched yet
                 if (Time.time >= stimulusOffsetTime)
                 {
                     FinishStimulusPhaseIfNeeded();
@@ -139,7 +139,7 @@ public class TrialStateController : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Noch nicht: Stimulus läuft noch. Warte bis er fertig ist, dann SPACE für Antwort.");
+                    Debug.Log("Not yet: the stimulus is still playing. Wait until it finishes, then press SPACE to log the response.");
                 }
                 break;
 
@@ -157,30 +157,30 @@ public class TrialStateController : MonoBehaviour
     {
         if (head == null)
         {
-            Debug.LogError("TrialStateController: head ist nicht gesetzt.");
+            Debug.LogError("TrialStateController: head is not assigned.");
             return;
         }
 
         if (experiment == null)
         {
-            Debug.LogError("TrialStateController: experiment-Referenz fehlt.");
+            Debug.LogError("TrialStateController: experiment reference is missing.");
             return;
         }
 
-        // Baseline setzen
+        // Set baseline
         baselineRotation = head.rotation;
 
         Vector3 gazeDir = GetCurrentGazeDirection();
         DirectionToAzEl(gazeDir, out baselineAzDeg, out baselineElDeg);
 
-        // Trial-Tracking resetten
+        // Reset trial tracking
         maxHeadDeviationThisTrial = 0f;
         maxYawDeviationThisTrial = 0f;
         maxPitchDeviationThisTrial = 0f;
         headDeviationExceededThisTrial = false;
         stimulusFinishedLogged = false;
 
-        // Stimulus starten (inkl. Reaper/OSC-Routing – bleibt in ExperimentController)
+        // Start stimulus (incl. Reaper/OSC routing, remains in ExperimentController)
         float dur = simulatedStimulusDuration;
 
         experiment.StartStimulusForCurrentTrial(dur);
@@ -188,7 +188,7 @@ public class TrialStateController : MonoBehaviour
         stimulusOffsetTime = Time.time + dur;
         state = TrialState.StimulusPlaying;
 
-        Debug.Log($"Baseline+Stimulus gestartet (SPACE). BaselineAz={baselineAzDeg:F1}°, BaselineEl={baselineElDeg:F1}°, Dauer={dur:F2}s");
+        Debug.Log($"Baseline+Stimulus started (SPACE). BaselineAz={baselineAzDeg:F1}°, BaselineEl={baselineElDeg:F1}°, Duration={dur:F2}s");
     }
 
     private void FinishStimulusPhaseIfNeeded()
@@ -202,35 +202,34 @@ public class TrialStateController : MonoBehaviour
         {
             stimulusFinishedLogged = true;
 
-            // Kleiner Log direkt nach Stimulus-Ende (hilft beim Debugging/Timing)
             if (experiment != null)
             {
                 int tn = experiment.GetCurrentTrialNumber();
                 int total = experiment.GetTotalTrialCount();
-                Debug.Log($"Stimulus-Ende (Trial {tn}/{total}). Wechsel in Antwortphase.");
+                Debug.Log($"Stimulus ended (Trial {tn}/{total}). Switching to response phase.");
             }
             else
             {
-                Debug.Log("Stimulus-Ende. Wechsel in Antwortphase.");
+                Debug.Log("Stimulus ended. Switching to response phase.");
             }
 
-            // Ausgabe zur maximalen Kopfbewegung (inkl. möglicher Überschreitung) genau an diesem Punkt
+            // Output of the maximum head movement (including possible exceedance) at this exact point
             if (headDeviationExceededThisTrial)
             {
                 Debug.Log(
-                    $"Achtung: Kopfbewegung > {maxAllowedHeadDeviation:F1}°. " +
-                    $"MaxGesamt={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
+                    $"Warning: head movement > {maxAllowedHeadDeviation:F1}°. " +
+                    $"MaxTotal={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
                 );
             }
             else
             {
                 Debug.Log(
-                    $"Kopfbewegung ok. " +
-                    $"MaxGesamt={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
+                    $"Head movement OK. " +
+                    $"MaxTotal={maxHeadDeviationThisTrial:F1}°, MaxYaw={maxYawDeviationThisTrial:F1}°, MaxPitch={maxPitchDeviationThisTrial:F1}°"
                 );
             }
 
-            Debug.Log("Stimulus fertig. SPACE zum Einloggen der Antwort.");
+            Debug.Log("Stimulus finished. Press SPACE to log the response.");
         }
     }
 
@@ -239,32 +238,32 @@ public class TrialStateController : MonoBehaviour
     {
         if (experiment == null)
         {
-            Debug.LogError("TrialStateController: experiment fehlt.");
+            Debug.LogError("TrialStateController: experiment is missing.");
             return;
         }
 
-        // Antwortzeit (Ende Stimulus -> Tastendruck)
+        // Response time (stimulus end -> key press)
         float responseTime = Time.time - stimulusOffsetTime;
 
-        // Blickrichtung & Zielrichtung
+        // Gaze direction & target direction
         Vector3 headDir = GetCurrentGazeDirection();
         Vector3 sourceDir = experiment.GetSourceDirection();
 
-        // Gesamtfehler
+        // Overall error
         float errorAngle = Vector3.Angle(headDir, sourceDir);
 
-        // Fehler in Az/El
+        // Error in az/el
         DirectionToAzEl(headDir, out float headAz, out float headEl);
         DirectionToAzEl(sourceDir, out float tgtAz, out float tgtEl);
 
-        float errorAz = Mathf.DeltaAngle(tgtAz, headAz);  // [-180..180]
+        float errorAz = Mathf.DeltaAngle(tgtAz, headAz);
         float errorEl = headEl - tgtEl;
 
         Debug.Log(
-            $"Antwort geloggt (SPACE). RT={responseTime:F3}s, Error={errorAngle:F1}° (AzErr={errorAz:F1}°, ElErr={errorEl:F1}°)"
+            $"Response logged (SPACE). RT={responseTime:F3}s, Error={errorAngle:F1}° (AzErr={errorAz:F1}°, ElErr={errorEl:F1}°)"
         );
 
-        // Trial-Metadaten aus ExperimentController
+        // Trial metadata from ExperimentController
         int designTrialIndex = experiment.GetCurrentTrialNumber();
         var representation = experiment.GetCurrentRepresentation();
         var signalType = experiment.GetCurrentSignalType();
@@ -289,11 +288,11 @@ public class TrialStateController : MonoBehaviour
             headDeviationExceededThisTrial
         );
 
-        // Nächstes Trial vorbereiten
+        // Prepare next trial
         bool hasNext = experiment.AdvanceToNextTrial();
         if (!hasNext)
         {
-            Debug.Log("TrialStateController: Alle Trials abgeschlossen. Experiment beendet.");
+            Debug.Log("TrialStateController: All trials completed. Experiment finished.");
         }
 
         state = TrialState.Idle;
@@ -301,7 +300,7 @@ public class TrialStateController : MonoBehaviour
 
     #endregion
 
-    #region Stimulus-Update & Head-Tracking
+    #region Stimulus update & Head tracking
 
     private void UpdateStimulusState()
     {
@@ -312,9 +311,9 @@ public class TrialStateController : MonoBehaviour
     }
 
     /// <summary>
-    /// Trackt Kopfbewegung während der Hörphase (StimulusPlaying).
-    /// - Gesamtwinkel weiterhin über Quaternion.Angle
-    /// - Zusätzlich Yaw/Pitch-Abweichung über Az/El der Blickrichtung
+    /// Tracks head movement during the listening phase (StimulusPlaying).
+    /// Overall angle still via Quaternion.Angle.
+    /// Additionally yaw/pitch deviation via az/el of the gaze direction.
     /// </summary>
     private void TrackHeadMovement()
     {
@@ -324,7 +323,7 @@ public class TrialStateController : MonoBehaviour
         if (state != TrialState.StimulusPlaying)
             return;
 
-        // 1) Gesamtwinkel-Abweichung (wie vorher)
+        // Overall angle deviation
         float deviation = Quaternion.Angle(baselineRotation, head.rotation);
         if (deviation > maxHeadDeviationThisTrial)
             maxHeadDeviationThisTrial = deviation;
@@ -332,7 +331,7 @@ public class TrialStateController : MonoBehaviour
         if (deviation > maxAllowedHeadDeviation)
             headDeviationExceededThisTrial = true;
 
-        // 2) Yaw/Pitch-Abweichung über Blickrichtung
+        // Yaw/pitch deviation via gaze direction
         Vector3 gazeDir = GetCurrentGazeDirection();
         DirectionToAzEl(gazeDir, out float az, out float el);
 
@@ -370,7 +369,7 @@ public class TrialStateController : MonoBehaviour
             File.WriteAllText(logFilePath, header + "\n");
         }
 
-        Debug.Log($"Logging initialisiert. Log-Datei: {logFilePath}");
+        Debug.Log($"Logging initialized. Log file: {logFilePath}");
     }
 
     private void AppendTrialLog(
