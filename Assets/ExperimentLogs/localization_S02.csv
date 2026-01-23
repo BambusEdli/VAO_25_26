@@ -1,4 +1,0 @@
-timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;errorAzDeg;errorElDeg;responseTimeSec;maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded
-2026-01-22 19:44:11;S02;1;Binaural;Voice;2;163,6;-45,2;109,962;134,880;61,065;2,104;0,0;0,0;0,0;0
-2026-01-22 19:44:15;S02;2;Binaural;Tone;2;167,3;58,4;101,946;119,754;-65,349;0,768;0,0;0,0;0,0;0
-2026-01-23 15:39:40;S02;1;Binaural;Voice;2;154,5;-45,6;6,369;9,100;-0,804;24,778;0,0;0,0;0,0;0
