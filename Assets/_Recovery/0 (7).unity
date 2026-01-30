@@ -1110,7 +1110,7 @@ MonoBehaviour:
   experiment: {fileID: 1032955940}
   simulatedStimulusDuration: 2
   maxAllowedHeadDeviation: 7
-  subjectId: TEST
+  subjectId: S07
   logUnderAssetsFolder: 1
 --- !u!114 &1108434253 stripped
 MonoBehaviour:
