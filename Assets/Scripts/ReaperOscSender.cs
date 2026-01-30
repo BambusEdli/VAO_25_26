@@ -20,7 +20,7 @@ public class ReaperOscSender : MonoBehaviour
         _transmitter.RemotePort = RemotePort;
     }
 
-    // ----------------- Öffentliche API -----------------
+    // ----------------- Public API -----------------
 
     public enum SignalType
     {
@@ -39,7 +39,7 @@ public class ReaperOscSender : MonoBehaviour
     /// <summary>
     /// Sets the routing for a combination of signal and representation:
     /// exactly one signal track (1 = Voice, 2 = Noise, 3 = Music)
-    /// exactly one bus track (4 = HOA3, 5 = HOA4, 6 = Binaural)
+    /// exactly one bus track   (4 = Binaural, 5 = HOA3, 6 = HOA4)  <-- matches your REAPER project
     /// </summary>
     public void ConfigureRouting(SignalType signal, RepresentationType representation)
     {
@@ -59,16 +59,18 @@ public class ReaperOscSender : MonoBehaviour
                 break;
         }
 
+        // IMPORTANT: Representation track order in REAPER:
+        // Track 4 = Binaural, Track 5 = HOA3, Track 6 = HOA4
         int repTrack = 4;
         switch (representation)
         {
-            case RepresentationType.HOA3:
+            case RepresentationType.Binaural:
                 repTrack = 4;
                 break;
-            case RepresentationType.HOA4:
+            case RepresentationType.HOA3:
                 repTrack = 5;
                 break;
-            case RepresentationType.Binaural:
+            case RepresentationType.HOA4:
                 repTrack = 6;
                 break;
         }
@@ -76,8 +78,10 @@ public class ReaperOscSender : MonoBehaviour
         SetTrackMute(signalTrack, false);
         SetTrackMute(repTrack, false);
 
-        Debug.Log($"ReaperOscSender: Routing set -> Signal {signal} (Track {signalTrack}), " +
-                  $"Rep {representation} (Track {repTrack})");
+        Debug.Log(
+            $"ReaperOscSender: Routing set -> Signal {signal} (Track {signalTrack}), " +
+            $"Rep {representation} (Track {repTrack})"
+        );
     }
 
     public void PlayStimulus(SignalType signal,
@@ -130,7 +134,6 @@ public class ReaperOscSender : MonoBehaviour
         ConfigureRouting(signal, representation);
 
         JumpToStart();
-
         TogglePlay();
 
         yield return new WaitForSeconds(durationSec);
