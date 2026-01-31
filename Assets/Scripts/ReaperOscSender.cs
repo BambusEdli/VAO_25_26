@@ -20,7 +20,6 @@ public class ReaperOscSender : MonoBehaviour
         _transmitter.RemotePort = RemotePort;
     }
 
-    // ----------------- Public API -----------------
 
     public enum SignalType
     {
@@ -36,11 +35,7 @@ public class ReaperOscSender : MonoBehaviour
         Binaural
     }
 
-    /// <summary>
-    /// Sets the routing for a combination of signal and representation:
-    /// exactly one signal track (1 = Voice, 2 = Noise, 3 = Music)
-    /// exactly one bus track   (4 = Binaural, 5 = HOA3, 6 = HOA4)  <-- matches your REAPER project
-    /// </summary>
+
     public void ConfigureRouting(SignalType signal, RepresentationType representation)
     {
         SetAllTracksMute(true);
@@ -59,7 +54,7 @@ public class ReaperOscSender : MonoBehaviour
                 break;
         }
 
-        // IMPORTANT: Representation track order in REAPER:
+
         // Track 4 = Binaural, Track 5 = HOA3, Track 6 = HOA4
         int repTrack = 4;
         switch (representation)

@@ -1,0 +1,1 @@
+﻿timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;errorAzDeg;errorElDeg;responseTimeSec;maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded

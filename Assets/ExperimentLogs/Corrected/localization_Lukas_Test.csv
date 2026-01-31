@@ -1,0 +1,4 @@
+﻿timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;errorAzDeg;errorElDeg;responseTimeSec;maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded
+2026-01-26 11:34:55;Lukas_Test;1;HOA3rdOrder;Voice;3;239,3;78,5;75,783;23,774;-74,608;14,038;0,5;0,2;0,5;0
+2026-01-26 11:38:49;Lukas_test;1;HOA3rdOrder;Tone;3;222,3;37,6;54,737;41,657;-38,502;2,408;0,6;0,2;0,6;0
+2026-01-26 11:39:04;Lukas_test;2;HOA4thOrder;Music;2;175,2;17,3;14,774;-8,561;-12,137;5,603;0,7;0,5;0,2;0
