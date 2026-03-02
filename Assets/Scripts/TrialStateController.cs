@@ -390,7 +390,7 @@ public class TrialStateController : MonoBehaviour
     {
         string timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         int exceededFlag = headDeviationExceeded ? 1 : 0;
-        int quadrantHuman = quadrantIndex + 1;
+        int quadrantHuman = quadrantIndex < 0 ? -1 : (((quadrantIndex + 2) % 4) + 1);  // +180° for logging
 
         string line = string.Format(
             "{0};{1};{2};{3};{4};{5};{6:F1};{7:F1};{8:F3};{9:F3};{10:F3};{11:F3};{12:F1};{13:F1};{14:F1};{15}",

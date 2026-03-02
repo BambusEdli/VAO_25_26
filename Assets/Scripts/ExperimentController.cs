@@ -378,7 +378,7 @@ public class ExperimentController : MonoBehaviour
         Debug.Log(
             $"Neuer Trial #{currentTrialIndex + 1}/{trials.Count}: " +
             $"Rep={currentTrial.representation}, Signal={currentTrial.signalType}, " +
-            $"Quadrant={currentTrial.quadrantIndex + 1}, " +
+            $"Quadrant={(((currentTrial.quadrantIndex + 2) % 4) + 1)}, " +   // +180° for logging
             $"Az={currentTrial.targetAzimuthDeg:F1}°, El={currentTrial.targetElevationDeg:F1}°");
 
         return true;
