@@ -1339,7 +1339,7 @@ MonoBehaviour:
   experiment: {fileID: 1032955940}
   simulatedStimulusDuration: 2
   maxAllowedHeadDeviation: 7
-  subjectId: TEST2
+  subjectId: localization_Neu_Test_LukasNr2.csv
   logUnderAssetsFolder: 1
 --- !u!1 &1043864937
 GameObject:
