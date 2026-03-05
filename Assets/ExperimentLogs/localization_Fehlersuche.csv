@@ -1,6 +1,0 @@
-timestamp;subjectId;designTrialIndex;representation;signalType;quadrant;targetAzDeg;targetElDeg;errorDeg;errorAzDeg;errorElDeg;responseTimeSec;maxHeadDeviationDeg;maxYawDeviationDeg;maxPitchDeviationDeg;headDeviationExceeded
-2026-02-26 17:14:52;Fehlersuche;1;HOA3rdOrder;Voice;4;319,6;-24,0;66,019;-139,570;-66,019;24,496;0,0;0,0;0,0;0
-2026-02-26 17:16:03;Fehlersuche;2;HOA3rdOrder;Music;3;268,4;85,3;175,258;-88,412;-175,258;27,983;0,0;0,0;0,0;0
-2026-02-26 17:19:18;Fehlersuche;3;HOA4thOrder;Voice;2;133,2;31,5;121,526;46,791;-121,526;1,937;0,0;0,0;0,0;0
-2026-02-26 17:19:38;Fehlersuche;4;HOA3rdOrder;Music;2;147,4;43,2;133,220;32,580;-133,220;4,304;0,0;0,0;0,0;0
-2026-02-26 17:19:48;Fehlersuche;5;HOA3rdOrder;Voice;2;157,2;75,2;165,163;22,822;-165,163;2,705;0,0;0,0;0,0;0
